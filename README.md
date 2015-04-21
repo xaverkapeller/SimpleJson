@@ -13,6 +13,7 @@ A simple and lightning fast JSON Parser for Android without any runtime overhead
 * [Installation](#installation)
 * [Mapping Enums](#mapping-enums)
 * [Collections and Child Entities](#collections-and-child-entities)
+* [Performance Considerations](#performance-considerations)
 * [Planned Features](#planned-features)
 
 # Basic Usage
@@ -43,9 +44,9 @@ A JSON that corrosponds to the above interface would look something like this:
 You can parse a JSON into an `ExampleModel` or the other way around like this:
 
 ```java
-ExampleModel model = SimpleJson.fromJson(json);
+ExampleModel model = SimpleJson.fromJson(ExampleModel.class, json);
 ...
-String json = SimpleJson.toJson(model);
+String json = SimpleJson.toJson(ExampleModel.class, model);
 ```
 
 If you have an array of JSON objects like this:
@@ -70,14 +71,14 @@ If you have an array of JSON objects like this:
 Then you can parse that JSON by calling `fromJsonArray()`:
 
 ```java
-List<ExampleModel> models = SimpleJson.fromJsonArray(json);
+List<ExampleModel> models = SimpleJson.fromJsonArray(ExampleModel.class, json);
 ```
 
 You can of course also translate a `List` of `ExampleModel`s into a JSON like this:
 
 ```java
 List<ExampleModel> models = ...;
-String json = SimpleJson.toJson(models);
+String json = SimpleJson.toJson(ExampleModel.class, models);
 ```
 
 # Installation
@@ -194,6 +195,26 @@ Collections like `List` or `Set` are represented as array in the JSON. Child ent
   ]
 }
 ```
+
+# Performance Considerations
+
+SimpleJson is optimized to be as fast and efficient as possible but there are still some optimizations which can be implemented by you to get the most out of it!
+
+SimpleJson internally uses a generated implementation of the `Parser` interface. For various reasons the implementations are **not** cached by SimpleJson. So each time you call a static method like `toJson` or `fromJson` internally a new instance of the appropriate `Parser` interface is created. If you perform many such operations in a sequence the overhead of constantly creating new `Parser` instances can be felt (compiler optimizations not withstanding).
+
+For that reason SimpleJson provides another static method called `getParser()`. With it you can hold on to the `Parser` instance for as long as you want and use it to translate your JSONs just like you would with `SimpleJson`. For example:
+
+```java
+final Parser<ExampleModel> parser = SimpleJson.getParser(ExampleModel.class);
+...
+ExampleModel model = parser.fromJson(json);
+...
+String json = parser.toJson(model);
+...
+List<ExampleModel> models = parser.fromJsonArray(json);
+```
+
+Note that when using the `Parser` instance directly you do not need to specify the class of the model anymore!
 
 # Planned Features
 
