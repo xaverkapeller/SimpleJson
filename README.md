@@ -81,6 +81,10 @@ List<ExampleModel> models = ...;
 String json = SimpleJson.toJson(ExampleModel.class, models);
 ```
 
+If there is an optional element in a JSON you want to parse just annotate the corrosponding getter with `@Optional`. If the element is missing from the JSON then it will be parsed as `null`. If an element is not annotated with `@Optional` and it is missing from the JSON than a `JSONException` will be thrown! 
+
+**Note:** Methods annotated with `@Optional` cannot return primitive values! Use boxed values instead.
+
 # Installation
 
 1) Just download this library and add the two modules SimpleJson and SimpleJsonCompiler to your Android project.
@@ -218,7 +222,7 @@ Note that when using the `Parser` instance directly you do not need to specify t
 
 # Planned Features
 
- - [ ] Child Entities
+ - [x] Child Entities
+ - [x] Support for `@Optional` annotation to define optional elements.
  - [ ] Better Code Generation
  - [ ] Option to enable/disable strict mode when parsing or mapping
- - [ ] Support for `@Optional` annotation to define optional elements.
