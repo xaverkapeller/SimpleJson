@@ -70,7 +70,7 @@ public class ParserBuilder {
         mBuilder.addImport(SimpleJsonTypes.JSON_ARRAY);
         mBuilder.addImport(Types.ARRAY_LIST);
 
-        final Method fromJsonObject = mBuilder.addMethod(entityType, "fromJsonObject", EnumSet.of(Modifier.PRIVATE), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
+        final Method fromJsonObject = mBuilder.addMethod(entityType, "fromJsonObject", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
 
             private Variable paramJsonObject;
 
@@ -112,7 +112,7 @@ public class ParserBuilder {
             }
         });
 
-        final Method toJsonObject = mBuilder.addMethod(SimpleJsonTypes.JSON_OBJECT, "toJsonObject", EnumSet.of(Modifier.PRIVATE), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
+        final Method toJsonObject = mBuilder.addMethod(SimpleJsonTypes.JSON_OBJECT, "toJsonObject", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
 
             private Variable paramEntity;
 

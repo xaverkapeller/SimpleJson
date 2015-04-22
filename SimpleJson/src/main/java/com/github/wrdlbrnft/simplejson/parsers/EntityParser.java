@@ -21,21 +21,23 @@ public class EntityParser<T> implements ElementParser<T> {
 
     @Override
     public T fromJsonObject(JSONObject object, String key) throws JSONException {
-        return mParser.fromJson(object.getString(key));
+        final JSONObject entityObject = object.getJSONObject(key);
+        return mParser.fromJsonObject(entityObject);
     }
 
     @Override
     public void toJsonObject(JSONObject object, String key, T value) throws JSONException {
-        object.put(key, mParser.toJson(value));
+        object.put(key, mParser.toJsonObject(value));
     }
 
     @Override
     public T fromJsonArray(JSONArray array, int index) throws JSONException {
-        return mParser.fromJson(array.getString(index));
+        final JSONObject entityObject = array.getJSONObject(index);
+        return mParser.fromJsonObject(entityObject);
     }
 
     @Override
     public void toJsonArray(JSONArray array, T value) throws JSONException {
-        array.put(mParser.toJson(value));
+        array.put(mParser.toJsonObject(value));
     }
 }
