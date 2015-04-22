@@ -4,8 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/CodeBuilder/CodeBuilder.iml" filepath="$PROJECT_DIR$/CodeBuilder/CodeBuilder.iml" />
       <module fileurl="file://$PROJECT_DIR$/SimpleJson/SimpleJson.iml" filepath="$PROJECT_DIR$/SimpleJson/SimpleJson.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SimpleJson/SimpleJson-SimpleJson.iml" filepath="$PROJECT_DIR$/SimpleJson/SimpleJson-SimpleJson.iml" />
       <module fileurl="file://$PROJECT_DIR$/SimpleJsonCompiler/SimpleJsonCompiler.iml" filepath="$PROJECT_DIR$/SimpleJsonCompiler/SimpleJsonCompiler.iml" />
-      <module fileurl="file://$PROJECT_DIR$/SimpleJsonDemo.iml" filepath="$PROJECT_DIR$/SimpleJsonDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>

@@ -114,7 +114,7 @@ public class ImplementationBuilder {
 
                 final Field field = implBuilder.addField(finalReturnType, EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
                 final String key = Utils.getAnnotationValue(method, Annotations.KEY, "value").getValue().toString();
-                final boolean optional = Utils.hasAnnotation(method, Annotations.MAP_INT);
+                final boolean optional = Utils.hasAnnotation(method, Annotations.OPTIONAL);
                 if (optional && Types.isPrimitive(itemType)) {
                     mProcessingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "You cannot use @Optional when the return type of the method is a primitive! Use Boxed return types instead. (e.g. int -> Integer)", method);
                 }

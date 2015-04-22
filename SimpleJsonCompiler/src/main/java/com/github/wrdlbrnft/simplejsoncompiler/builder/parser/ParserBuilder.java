@@ -10,6 +10,7 @@ import com.github.wrdlbrnft.codebuilder.impl.ClassBuilder;
 import com.github.wrdlbrnft.codebuilder.impl.Types;
 import com.github.wrdlbrnft.codebuilder.impl.VariableGenerator;
 import com.github.wrdlbrnft.codebuilder.utils.Utils;
+import com.github.wrdlbrnft.simplejsoncompiler.Annotations;
 import com.github.wrdlbrnft.simplejsoncompiler.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejsoncompiler.models.ImplementationResult;
 import com.github.wrdlbrnft.simplejsoncompiler.models.MappedValue;
@@ -195,9 +196,13 @@ public class ParserBuilder {
                 code.append(varList.initialize(Types.ARRAY_LIST.genericVersion(entityType).newInstance(new String[0]))).append(";\n");
                 final Variable varJsonArray = generator.generate(SimpleJsonTypes.JSON_ARRAY, Modifier.FINAL);
                 final Variable varJsonObject = generator.generate(SimpleJsonTypes.JSON_OBJECT, Modifier.FINAL);
+                final Variable varIndex = generator.generate(Types.Primitives.INTEGER);
+                final Variable varCounter = generator.generate(Types.Primitives.INTEGER);
                 code.append(varJsonArray.initialize(SimpleJsonTypes.JSON_ARRAY.newInstance(paramJson))).append(";\n");
-                code.append("for(int i = 0, count = ").append(varJsonArray).append(".length(); i < count; i++) {\n");
-                code.append(varJsonObject.initialize(varJsonArray + ".getJSONObject(i);\n"));
+                code.append("for(").append(varIndex.initialize("0")).append(", ").append(varCounter).append(" = ").append(varJsonArray).append(".length()")
+                        .append("; ").append(varIndex).append(" < ").append(varCounter).append("; ")
+                        .append(varIndex).append("++) {\n");
+                code.append(varJsonObject.initialize(varJsonArray + ".getJSONObject(" + varIndex + ");\n"));
                 code.append(varList).append(".add(").append(fromJsonObject.execute(null, varJsonObject)).append(");\n");
                 code.append("}\n");
                 code.append("return ").append(varList).append(";\n");
@@ -301,6 +306,10 @@ public class ParserBuilder {
         mBuilder.addImport(SimpleJsonTypes.JSON_ARRAY);
         code.append(varSet.initialize(Types.ARRAY_LIST.genericVersion(itemType).newInstance(new String[0]))).append(";\n");
 
+        if (mappedValue.isOptional()) {
+            code = code.newIf(varJsonObject + ".has(\"" + mappedValue.getKey() + "\")").whenTrue();
+        }
+
         parseCollection(code, varSet, varJsonObject, mappedValue.getKey(), parser, generator);
 
         return varSet;
@@ -317,6 +326,10 @@ public class ParserBuilder {
         mBuilder.addImport(SimpleJsonTypes.JSON_ARRAY);
         code.append(varSet.initialize(Types.HASH_SET.genericVersion(itemType).newInstance(new String[0]))).append(";\n");
 
+        if (mappedValue.isOptional()) {
+            code = code.newIf(varJsonObject + ".has(\"" + mappedValue.getKey() + "\")").whenTrue();
+        }
+
         parseCollection(code, varSet, varJsonObject, mappedValue.getKey(), parser, generator);
 
         return varSet;
@@ -324,17 +337,29 @@ public class ParserBuilder {
 
     private void parseCollection(CodeBlock code, Variable varCollection, Variable varJsonObject, String key, Field parser, VariableGenerator generator) {
         final Variable varJsonArray = generator.generate(SimpleJsonTypes.JSON_ARRAY, Modifier.FINAL);
+        final Variable varIndex = generator.generate(Types.Primitives.INTEGER);
+        final Variable varCounter = generator.generate(Types.Primitives.INTEGER);
+
         code.append(varJsonArray.initialize(varJsonObject + ".getJSONArray(\"" + key + "\")")).append(";\n");
-        code.append("for(int i = 0; i < " + varJsonArray + ".length(); i++) {\n");
-        code.append(varCollection).append(".add(").append(parser).append(".fromJsonArray(").append(varJsonArray).append(", i").append(")").append(");\n");
+        code.append("for(").append(varIndex.initialize("0")).append(", ").append(varCounter).append(" = ").append(varJsonArray).append(".length()")
+                .append("; ").append(varIndex).append(" < ").append(varCounter).append("; ")
+                .append(varIndex).append("++) {\n");
+        code.append(varCollection).append(".add(").append(parser).append(".fromJsonArray(").append(varJsonArray).append(", ").append(varIndex).append(")").append(");\n");
         code.append("}\n");
     }
 
     private Variable parseValue(CodeBlock code, MappedValue mappedValue, Variable varJsonObject, VariableGenerator generator) {
+        final String key = "\"" + mappedValue.getKey() + "\"";
         final Type type = mappedValue.getType();
         final Field parser = getElementParser(type);
         final Variable variable = generator.generate(type, Modifier.FINAL);
-        code.append(variable.initialize(parser + ".fromJsonObject(" + varJsonObject + ", \"" + mappedValue.getKey() + "\")")).append(";\n");
+
+        if (mappedValue.isOptional()) {
+            code.append(variable.initialize(varJsonObject + ".has(" + key + ") ? " + parser + ".fromJsonObject(" + varJsonObject + ", " + key + ") : null")).append(";\n");
+        } else {
+            code.append(variable.initialize(parser + ".fromJsonObject(" + varJsonObject + ", " + key + ")")).append(";\n");
+        }
+
         return variable;
     }
 
@@ -353,7 +378,7 @@ public class ParserBuilder {
                 field = createElementParserField(parserType);
             } else {
                 mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "There is no parser implementation for " + type + "! Have you forgot to annotate it with @JsonEnum?", type.getTypeElement());
-                field = null;
+                throw new IllegalStateException("There is no parser implementation for " + type + "! Have you forgot to annotate it with @JsonEnum?");
             }
         } else if (type.equals(Types.STRING)) {
             field = createElementParserField(SimpleJsonTypes.STRING_PARSER);
@@ -374,8 +399,20 @@ public class ParserBuilder {
         } else if (type.equals(Types.Boxed.BOOLEAN)) {
             field = createElementParserField(SimpleJsonTypes.BOOLEAN_PARSER);
         } else {
-            mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, type.className() + " is not supported!", type.getTypeElement());
-            field = null;
+            final TypeElement element = type.getTypeElement();
+            if (element == null) {
+                mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not find a parser for " + type.className() + "!!1", mElement);
+                throw new IllegalStateException("Could not find a parser for " + type.className() + "!!1");
+            } else {
+                if (Utils.hasAnnotation(element, Annotations.JSON_ENTITY)) {
+                    final Type parserType = SimpleJsonTypes.ENTITY_PARSER.genericVersion(type);
+                    field = mBuilder.addField(parserType, EnumSet.of(Modifier.PRIVATE, Modifier.FINAL));
+                    field.setInitialValue(parserType.newInstance(type.className() + ".class"));
+                } else {
+                    mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not find a parser for " + type.className() + "!!1 Have you forgot to annotate it?", mElement);
+                    throw new IllegalStateException("Could not find a parser for " + type.className() + "!!1 Have you forgot to annotate it?");
+                }
+            }
         }
 
         mParserMap.put(key, field);
