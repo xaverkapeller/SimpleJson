@@ -175,7 +175,7 @@ public enum Type {
 }
 ```
 
-Collections like `List` or `Set` are represented as array in the JSON. Child entities will be parsed recursively and if a `Parent` would be translated to JSON result would look something like this:
+Collections like `List` or `Set` are represented as array in JSON. Child entities will be parsed recursively and if a `Parent` is translated to JSON the result would look something like this:
 
 ```json
 {
