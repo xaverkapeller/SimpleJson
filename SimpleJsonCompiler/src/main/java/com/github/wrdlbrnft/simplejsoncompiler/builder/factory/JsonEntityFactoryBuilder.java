@@ -33,19 +33,17 @@ public class JsonEntityFactoryBuilder {
     private static final String FACTORY_PACKAGE_NAME = "com.github.wrdlbrnft.simplejson";
 
     private final ProcessingEnvironment mProcessingEnvironment;
-    private final List<ImplementationResult> mImplementationResultList;
 
-    public JsonEntityFactoryBuilder(ProcessingEnvironment processingEnvironment, List<ImplementationResult> implementationResultList) {
+    public JsonEntityFactoryBuilder(ProcessingEnvironment processingEnvironment) {
         mProcessingEnvironment = processingEnvironment;
-        mImplementationResultList = implementationResultList;
     }
 
-    public void build() throws IOException {
+    public void build(List<ImplementationResult> implementationResults) throws IOException {
         final ClassBuilder builder = new ClassBuilder(mProcessingEnvironment, FACTORY_CLASS_NAME);
         builder.setPackageName(FACTORY_PACKAGE_NAME);
         builder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
 
-        for (ImplementationResult result : mImplementationResultList) {
+        for (ImplementationResult result : implementationResults) {
             final Type interfaceType = result.getInterfaceType();
             final Type implType = result.getImplType();
             final List<MappedValue> mappedValueList = result.getMappedValues();

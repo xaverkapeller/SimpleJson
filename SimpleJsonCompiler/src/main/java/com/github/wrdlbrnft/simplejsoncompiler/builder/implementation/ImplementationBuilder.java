@@ -38,16 +38,14 @@ import javax.tools.Diagnostic;
 public class ImplementationBuilder {
 
     protected final ProcessingEnvironment mProcessingEnv;
-    private final TypeElement mElement;
 
-    public ImplementationBuilder(ProcessingEnvironment processingEnv, TypeElement element) {
+    public ImplementationBuilder(ProcessingEnvironment processingEnv) {
         mProcessingEnv = processingEnv;
-        mElement = element;
     }
 
-    public ImplementationResult build() throws IOException {
+    public ImplementationResult build(TypeElement interfaceElement) throws IOException {
 
-        final Type interfaceType = Types.create(mElement);
+        final Type interfaceType = Types.create(interfaceElement);
         final String implClassName = interfaceType.className() + "$Impl";
 
         final ClassBuilder implBuilder = new ClassBuilder(mProcessingEnv, implClassName);
@@ -55,10 +53,10 @@ public class ImplementationBuilder {
         final Set<Type> implementedTypes = new HashSet<>();
         implementedTypes.add(interfaceType);
         implBuilder.setImplements(implementedTypes);
-        implBuilder.setPackageName(Utils.getPackageName(mElement));
+        implBuilder.setPackageName(Utils.getPackageName(interfaceElement));
 
         final List<MappedValue> mappedValues = new ArrayList<>();
-        for (Element element : mElement.getEnclosedElements()) {
+        for (Element element : interfaceElement.getEnclosedElements()) {
             if (element.getKind() == ElementKind.METHOD) {
                 final ExecutableElement method = (ExecutableElement) element;
                 final MappedValue mappedValue = handleMethod(implBuilder, method);

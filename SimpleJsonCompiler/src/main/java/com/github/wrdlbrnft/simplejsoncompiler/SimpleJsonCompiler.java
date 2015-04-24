@@ -8,7 +8,6 @@ import com.github.wrdlbrnft.simplejsoncompiler.builder.implementation.Implementa
 import com.github.wrdlbrnft.simplejsoncompiler.builder.parser.ParserBuilder;
 import com.github.wrdlbrnft.simplejsoncompiler.models.ImplementationResult;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -63,21 +62,20 @@ public class SimpleJsonCompiler extends AbstractProcessor {
             }
         }
 
-        final List<ImplementationResult> implementationResultList = new ArrayList<>();
+        final ImplementationBuilder implementationBuilder = new ImplementationBuilder(processingEnv);
+        final ParserBuilder parserBuilder = new ParserBuilder(processingEnv, mEnumParserMap);
 
+        final List<ImplementationResult> implementationResultList = new ArrayList<>();
         if (jsonEntityAnnotation != null) {
             final Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(jsonEntityAnnotation);
             for (Element element : annotatedElements) {
                 try {
                     if (element.getKind() == ElementKind.INTERFACE) {
                         final TypeElement model = (TypeElement) element;
-
-                        final ImplementationBuilder implementationBuilder = new ImplementationBuilder(processingEnv, model);
-                        final ImplementationResult result = implementationBuilder.build();
+                        final ImplementationResult result = implementationBuilder.build(model);
                         implementationResultList.add(result);
 
-                        final ParserBuilder parserBuilder = new ParserBuilder(processingEnv, model, result, mEnumParserMap);
-                        parserBuilder.build();
+                        parserBuilder.build(model, result);
                     } else {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "You can only annotate interfaces with @JsonEntity! ", element);
                     }
@@ -90,8 +88,8 @@ public class SimpleJsonCompiler extends AbstractProcessor {
 
         try {
             if (implementationResultList.size() > 0) {
-                final JsonEntityFactoryBuilder factoryBuilder = new JsonEntityFactoryBuilder(processingEnv, implementationResultList);
-                factoryBuilder.build();
+                final JsonEntityFactoryBuilder factoryBuilder = new JsonEntityFactoryBuilder(processingEnv);
+                factoryBuilder.build(implementationResultList);
             }
         } catch (Exception e) {
             processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not generate Factory implementation for JsonEntities!");

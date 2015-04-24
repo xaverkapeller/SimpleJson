@@ -10,7 +10,6 @@ import com.github.wrdlbrnft.codebuilder.impl.ClassBuilder;
 import com.github.wrdlbrnft.codebuilder.impl.Types;
 import com.github.wrdlbrnft.codebuilder.impl.VariableGenerator;
 import com.github.wrdlbrnft.codebuilder.utils.Utils;
-import com.github.wrdlbrnft.simplejsoncompiler.Annotations;
 import com.github.wrdlbrnft.simplejsoncompiler.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejsoncompiler.models.ImplementationResult;
 import com.github.wrdlbrnft.simplejsoncompiler.models.MappedValue;
@@ -19,7 +18,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +26,6 @@ import java.util.Set;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic;
 
 /**
  * Created by kapeller on 21/04/15.
@@ -36,41 +33,40 @@ import javax.tools.Diagnostic;
 public class ParserBuilder {
 
     private final ProcessingEnvironment mProcessingEnvironment;
-    private final TypeElement mElement;
-    private final ImplementationResult mImplementationResult;
 
     private final Map<String, Type> mEnumParserMap;
-    private final Map<String, Field> mParserMap = new HashMap<>();
 
-    private ClassBuilder mBuilder;
-
-    public ParserBuilder(ProcessingEnvironment processingEnvironment, TypeElement element, ImplementationResult implementationResult, Map<String, Type> enumParserMap) {
+    public ParserBuilder(ProcessingEnvironment processingEnvironment, Map<String, Type> enumParserMap) {
         mProcessingEnvironment = processingEnvironment;
-        mElement = element;
-        mImplementationResult = implementationResult;
         mEnumParserMap = enumParserMap;
     }
 
-    public void build() throws IOException {
-        final List<MappedValue> mappedValues = mImplementationResult.getMappedValues();
-        final Type implType = mImplementationResult.getImplType();
+    public void build(TypeElement interfaceElement, ImplementationResult implementationResult) throws IOException {
+        final List<MappedValue> mappedValues = implementationResult.getMappedValues();
+        final Type implType = implementationResult.getImplType();
 
-        final Type entityType = Types.create(mElement);
+        final Type entityType = Types.create(interfaceElement);
         final Type parserType = SimpleJsonTypes.PARSER.genericVersion(entityType);
         final String parserClassName = entityType.className() + "$Parser";
 
-        mBuilder = new ClassBuilder(mProcessingEnvironment, parserClassName);
-        mBuilder.setPackageName(Utils.getPackageName(mElement));
-        mBuilder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
+        ClassBuilder builder = new ClassBuilder(mProcessingEnvironment, parserClassName);
+        builder.setPackageName(Utils.getPackageName(interfaceElement));
+        builder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
+        builder.addImport(implType);
+        builder.addImport(SimpleJsonTypes.JSON_OBJECT);
+        builder.addImport(SimpleJsonTypes.JSON_ARRAY);
+        builder.addImport(Types.ARRAY_LIST);
+        builder.addImport(Types.LIST);
+        builder.addImport(Types.SET);
+        builder.addImport(Types.HASH_SET);
+
         final Set<Type> implementedTypes = new HashSet<>();
         implementedTypes.add(parserType);
-        mBuilder.setImplements(implementedTypes);
-        mBuilder.addImport(implType);
-        mBuilder.addImport(SimpleJsonTypes.JSON_OBJECT);
-        mBuilder.addImport(SimpleJsonTypes.JSON_ARRAY);
-        mBuilder.addImport(Types.ARRAY_LIST);
+        builder.setImplements(implementedTypes);
 
-        final Method fromJsonObject = mBuilder.addMethod(entityType, "fromJsonObject", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
+        final ElementParserResolver parserResolver = new ElementParserResolver(mProcessingEnvironment, interfaceElement, builder, mEnumParserMap);
+
+        final Method fromJsonObject = builder.addMethod(entityType, "fromJsonObject", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
 
             private Variable paramJsonObject;
 
@@ -92,15 +88,15 @@ public class ParserBuilder {
                     switch (mappedValue.getValueType()) {
 
                         case VALUE:
-                            params[i] = parseValue(code, mappedValue, paramJsonObject, generator);
+                            params[i] = parseValue(code, parserResolver, mappedValue, paramJsonObject, generator);
                             break;
 
                         case LIST:
-                            params[i] = parseList(code, mappedValue, paramJsonObject, generator);
+                            params[i] = parseList(code, parserResolver, mappedValue, paramJsonObject, generator);
                             break;
 
                         case SET:
-                            params[i] = parseSet(code, mappedValue, paramJsonObject, generator);
+                            params[i] = parseSet(code, parserResolver, mappedValue, paramJsonObject, generator);
                             break;
 
                         default:
@@ -112,7 +108,7 @@ public class ParserBuilder {
             }
         });
 
-        final Method toJsonObject = mBuilder.addMethod(SimpleJsonTypes.JSON_OBJECT, "toJsonObject", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
+        final Method toJsonObject = builder.addMethod(SimpleJsonTypes.JSON_OBJECT, "toJsonObject", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
 
             private Variable paramEntity;
 
@@ -136,15 +132,15 @@ public class ParserBuilder {
                     switch (mappedValue.getValueType()) {
 
                         case VALUE:
-                            formatValue(code, mappedValue, varJsonObject, paramEntity, generator);
+                            formatValue(code, parserResolver, mappedValue, varJsonObject, paramEntity, generator);
                             break;
 
                         case LIST:
-                            formatList(code, mappedValue, varJsonObject, paramEntity, generator);
+                            formatList(code, parserResolver, mappedValue, varJsonObject, paramEntity, generator);
                             break;
 
                         case SET:
-                            formatSet(code, mappedValue, varJsonObject, paramEntity, generator);
+                            formatSet(code, parserResolver, mappedValue, varJsonObject, paramEntity, generator);
                             break;
 
                         default:
@@ -156,7 +152,7 @@ public class ParserBuilder {
             }
         });
 
-        mBuilder.addMethod(entityType, "fromJson", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
+        builder.addMethod(entityType, "fromJson", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
 
             private Variable paramJson;
 
@@ -177,7 +173,7 @@ public class ParserBuilder {
             }
         });
 
-        mBuilder.addMethod(Types.LIST.genericVersion(entityType), "fromJsonArray", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
+        builder.addMethod(Types.LIST.genericVersion(entityType), "fromJsonArray", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
 
             private Variable paramJson;
 
@@ -209,7 +205,7 @@ public class ParserBuilder {
             }
         });
 
-        mBuilder.addMethod(Types.STRING, "toJson", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
+        builder.addMethod(Types.STRING, "toJson", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
 
             private Variable paramEntity;
 
@@ -230,7 +226,7 @@ public class ParserBuilder {
             }
         });
 
-        mBuilder.addMethod(Types.STRING, "toJson", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
+        builder.addMethod(Types.STRING, "toJson", EnumSet.of(Modifier.PUBLIC), Arrays.asList(SimpleJsonTypes.JSON_EXCEPTION), new ExecutableBuilder() {
 
             private Variable paramList;
 
@@ -261,13 +257,13 @@ public class ParserBuilder {
             }
         });
 
-        mBuilder.build();
+        builder.build();
     }
 
-    private void formatValue(CodeBlock code, MappedValue mappedValue, Variable varJsonObject, Variable varEntity, VariableGenerator generator) {
+    private void formatValue(CodeBlock code, ElementParserResolver parserResolver, MappedValue mappedValue, Variable varJsonObject, Variable varEntity, VariableGenerator generator) {
         final String key = mappedValue.getKey();
         final Type type = mappedValue.getType();
-        final Field parser = getElementParser(type);
+        final Field parser = parserResolver.getElementParserField(type);
         code.append(parser).append(".toJsonObject(")
                 .append(varJsonObject)
                 .append(", \"").append(key).append("\", ")
@@ -275,18 +271,18 @@ public class ParserBuilder {
                 .append(");\n");
     }
 
-    private void formatList(CodeBlock code, MappedValue mappedValue, Variable varJsonObject, Variable varEntity, VariableGenerator generator) {
-        formatCollection(code, mappedValue, varJsonObject, varEntity, generator);
+    private void formatList(CodeBlock code, ElementParserResolver parserResolver, MappedValue mappedValue, Variable varJsonObject, Variable varEntity, VariableGenerator generator) {
+        formatCollection(code, parserResolver, mappedValue, varJsonObject, varEntity, generator);
     }
 
-    private void formatSet(CodeBlock code, MappedValue mappedValue, Variable varJsonObject, Variable varEntity, VariableGenerator generator) {
-        formatCollection(code, mappedValue, varJsonObject, varEntity, generator);
+    private void formatSet(CodeBlock code, ElementParserResolver parserResolver, MappedValue mappedValue, Variable varJsonObject, Variable varEntity, VariableGenerator generator) {
+        formatCollection(code, parserResolver, mappedValue, varJsonObject, varEntity, generator);
     }
 
-    private void formatCollection(CodeBlock code, MappedValue mappedValue, Variable varJsonObject, Variable varEntity, VariableGenerator generator) {
+    private void formatCollection(CodeBlock code, ElementParserResolver parserResolver, MappedValue mappedValue, Variable varJsonObject, Variable varEntity, VariableGenerator generator) {
         final String key = mappedValue.getKey();
         final Type type = mappedValue.getType();
-        final Field parser = getElementParser(type);
+        final Field parser = parserResolver.getElementParserField(type);
         final Variable varItem = generator.generate(type);
         final Variable varJsonArray = generator.generate(SimpleJsonTypes.JSON_ARRAY);
         code.append(varJsonArray.initialize(SimpleJsonTypes.JSON_ARRAY.newInstance(new String[0]))).append(";\n");
@@ -296,14 +292,11 @@ public class ParserBuilder {
         code.append(varJsonObject).append(".put(\"").append(key).append("\", ").append(varJsonArray).append(");\n");
     }
 
-    private Variable parseList(CodeBlock code, MappedValue mappedValue, Variable varJsonObject, VariableGenerator generator) {
+    private Variable parseList(CodeBlock code, ElementParserResolver parserResolver, MappedValue mappedValue, Variable varJsonObject, VariableGenerator generator) {
         final Type itemType = mappedValue.getType();
-        final Field parser = getElementParser(itemType);
+        final Field parser = parserResolver.getElementParserField(itemType);
         final Type setType = Types.LIST.genericVersion(itemType);
         final Variable varSet = generator.generate(setType, Modifier.FINAL);
-        mBuilder.addImport(Types.LIST);
-        mBuilder.addImport(Types.ARRAY_LIST);
-        mBuilder.addImport(SimpleJsonTypes.JSON_ARRAY);
         code.append(varSet.initialize(Types.ARRAY_LIST.genericVersion(itemType).newInstance(new String[0]))).append(";\n");
 
         if (mappedValue.isOptional()) {
@@ -316,14 +309,11 @@ public class ParserBuilder {
     }
 
 
-    private Variable parseSet(CodeBlock code, MappedValue mappedValue, Variable varJsonObject, VariableGenerator generator) {
+    private Variable parseSet(CodeBlock code, ElementParserResolver parserResolver, MappedValue mappedValue, Variable varJsonObject, VariableGenerator generator) {
         final Type itemType = mappedValue.getType();
-        final Field parser = getElementParser(itemType);
+        final Field parser = parserResolver.getElementParserField(itemType);
         final Type setType = Types.SET.genericVersion(itemType);
         final Variable varSet = generator.generate(setType, Modifier.FINAL);
-        mBuilder.addImport(Types.SET);
-        mBuilder.addImport(Types.HASH_SET);
-        mBuilder.addImport(SimpleJsonTypes.JSON_ARRAY);
         code.append(varSet.initialize(Types.HASH_SET.genericVersion(itemType).newInstance(new String[0]))).append(";\n");
 
         if (mappedValue.isOptional()) {
@@ -348,10 +338,10 @@ public class ParserBuilder {
         code.append("}\n");
     }
 
-    private Variable parseValue(CodeBlock code, MappedValue mappedValue, Variable varJsonObject, VariableGenerator generator) {
+    private Variable parseValue(CodeBlock code, ElementParserResolver parserResolver, MappedValue mappedValue, Variable varJsonObject, VariableGenerator generator) {
         final String key = "\"" + mappedValue.getKey() + "\"";
         final Type type = mappedValue.getType();
-        final Field parser = getElementParser(type);
+        final Field parser = parserResolver.getElementParserField(type);
         final Variable variable = generator.generate(type, Modifier.FINAL);
 
         if (mappedValue.isOptional()) {
@@ -361,68 +351,5 @@ public class ParserBuilder {
         }
 
         return variable;
-    }
-
-    private Field getElementParser(Type type) {
-        final String key = type.fullClassName();
-        if (mParserMap.containsKey(key)) {
-            return mParserMap.get(key);
-        }
-
-        mBuilder.addImport(type);
-
-        final Field field;
-        if (type.isSubTypeOf(SimpleJsonTypes.ENUM)) {
-            if (mEnumParserMap.containsKey(key)) {
-                final Type parserType = mEnumParserMap.get(key);
-                field = createElementParserField(parserType);
-            } else {
-                mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "There is no parser implementation for " + type + "! Have you forgot to annotate it with @JsonEnum?", type.getTypeElement());
-                throw new IllegalStateException("There is no parser implementation for " + type + "! Have you forgot to annotate it with @JsonEnum?");
-            }
-        } else if (type.equals(Types.STRING)) {
-            field = createElementParserField(SimpleJsonTypes.STRING_PARSER);
-        } else if (type.equals(Types.Primitives.INTEGER)) {
-            field = createElementParserField(SimpleJsonTypes.INTEGER_PARSER);
-        } else if (type.equals(Types.Primitives.DOUBLE)) {
-            field = createElementParserField(SimpleJsonTypes.DOUBLE_PARSER);
-        } else if (type.equals(Types.Primitives.LONG)) {
-            field = createElementParserField(SimpleJsonTypes.LONG_PARSER);
-        } else if (type.equals(Types.Primitives.BOOLEAN)) {
-            field = createElementParserField(SimpleJsonTypes.BOOLEAN_PARSER);
-        } else if (type.equals(Types.Boxed.INTEGER)) {
-            field = createElementParserField(SimpleJsonTypes.INTEGER_PARSER);
-        } else if (type.equals(Types.Boxed.DOUBLE)) {
-            field = createElementParserField(SimpleJsonTypes.DOUBLE_PARSER);
-        } else if (type.equals(Types.Boxed.LONG)) {
-            field = createElementParserField(SimpleJsonTypes.LONG_PARSER);
-        } else if (type.equals(Types.Boxed.BOOLEAN)) {
-            field = createElementParserField(SimpleJsonTypes.BOOLEAN_PARSER);
-        } else {
-            final TypeElement element = type.getTypeElement();
-            if (element == null) {
-                mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not find a parser for " + type.className() + "!!1", mElement);
-                throw new IllegalStateException("Could not find a parser for " + type.className() + "!!1");
-            } else {
-                if (Utils.hasAnnotation(element, Annotations.JSON_ENTITY)) {
-                    final Type parserType = SimpleJsonTypes.ENTITY_PARSER.genericVersion(type);
-                    field = mBuilder.addField(parserType, EnumSet.of(Modifier.PRIVATE, Modifier.FINAL));
-                    field.setInitialValue(parserType.newInstance(type.className() + ".class"));
-                } else {
-                    mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not find a parser for " + type.className() + "!!1 Have you forgot to annotate it?", mElement);
-                    throw new IllegalStateException("Could not find a parser for " + type.className() + "!!1 Have you forgot to annotate it?");
-                }
-            }
-        }
-
-        mParserMap.put(key, field);
-
-        return field;
-    }
-
-    private Field createElementParserField(Type type) {
-        final Field field = mBuilder.addField(type, EnumSet.of(Modifier.PRIVATE, Modifier.FINAL));
-        field.setInitialValue(type.newInstance(new String[0]));
-        return field;
     }
 }
