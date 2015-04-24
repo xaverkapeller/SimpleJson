@@ -140,7 +140,7 @@ By annotating the enum like above `VALUE_A` will be mapped to the String `"a"` i
 
 # Collections and Child Entities
 
-You can also work with complex and models! Consider some like this:
+You can also work with complex models and child entities! Consider some like this:
 
 ```java
 @JsonEntity
@@ -175,7 +175,7 @@ public enum Type {
 }
 ```
 
-Collections like `List` or `Set` are represented as array in the JSON. Child entities will be parsed recursively and if a `Parent` would be translated to JSON result would look something like this:
+Collections like `List` or `Set` are represented as array in JSON. Child entities will be parsed recursively and if a `Parent` is translated to JSON the result would look something like this:
 
 ```json
 {
