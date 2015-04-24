@@ -3,13 +3,16 @@ package com.github.wrdlbrnft.simplejsoncompiler;
 import com.github.wrdlbrnft.codebuilder.elements.Type;
 import com.github.wrdlbrnft.codebuilder.impl.Types;
 import com.github.wrdlbrnft.simplejsoncompiler.builder.enums.EnumParserBuilder;
+import com.github.wrdlbrnft.simplejsoncompiler.builder.factory.JsonEntityFactoryBuilder;
 import com.github.wrdlbrnft.simplejsoncompiler.builder.implementation.ImplementationBuilder;
 import com.github.wrdlbrnft.simplejsoncompiler.builder.parser.ParserBuilder;
 import com.github.wrdlbrnft.simplejsoncompiler.models.ImplementationResult;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -60,13 +63,21 @@ public class SimpleJsonCompiler extends AbstractProcessor {
             }
         }
 
+        final List<ImplementationResult> implementationResultList = new ArrayList<>();
+
         if (jsonEntityAnnotation != null) {
             final Set<? extends Element> annotatedElements = roundEnv.getElementsAnnotatedWith(jsonEntityAnnotation);
             for (Element element : annotatedElements) {
                 try {
                     if (element.getKind() == ElementKind.INTERFACE) {
                         final TypeElement model = (TypeElement) element;
-                        buildClasses(model);
+
+                        final ImplementationBuilder implementationBuilder = new ImplementationBuilder(processingEnv, model);
+                        final ImplementationResult result = implementationBuilder.build();
+                        implementationResultList.add(result);
+
+                        final ParserBuilder parserBuilder = new ParserBuilder(processingEnv, model, result, mEnumParserMap);
+                        parserBuilder.build();
                     } else {
                         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "You can only annotate interfaces with @JsonEntity! ", element);
                     }
@@ -77,15 +88,17 @@ public class SimpleJsonCompiler extends AbstractProcessor {
             }
         }
 
+        try {
+            if (implementationResultList.size() > 0) {
+                final JsonEntityFactoryBuilder factoryBuilder = new JsonEntityFactoryBuilder(processingEnv, implementationResultList);
+                factoryBuilder.build();
+            }
+        } catch (Exception e) {
+            processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not generate Factory implementation for JsonEntities!");
+            e.printStackTrace();
+        }
+
         return false;
-    }
-
-    private void buildClasses(TypeElement model) throws IOException {
-        final ImplementationBuilder implementationBuilder = new ImplementationBuilder(processingEnv, model);
-        final ImplementationResult result = implementationBuilder.build();
-
-        final ParserBuilder parserBuilder = new ParserBuilder(processingEnv, model, result, mEnumParserMap);
-        parserBuilder.build();
     }
 
     @Override

@@ -4,6 +4,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.List;
+
 /**
  * Created by kapeller on 21/04/15.
  */
@@ -41,5 +43,10 @@ public class SimpleJson {
     public static <T> String toJson(Class<T> cls, T entity) throws JSONException {
         final Parser<T> parser = getParser(cls);
         return parser.toJson(entity);
+    }
+
+    public static <T> String toJson(Class<T> cls, List<T> entities) throws JSONException {
+        final Parser<T> parser = getParser(cls);
+        return parser.toJson(entities);
     }
 }
