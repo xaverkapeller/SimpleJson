@@ -14,8 +14,8 @@ A simple and lightning fast JSON Parser for Android with barely any runtime over
 If you are using the new Jack compiler all you have to add is these two dependencies:
 
 ```groovy
-compile 'com.github.wrdlbrnft:simple-json:0.1.0.6'
-annotationProcessor 'com.github.wrdlbrnft:simple-json-processor:0.1.0.6'
+compile 'com.github.wrdlbrnft:simple-json:0.1.0.9'
+annotationProcessor 'com.github.wrdlbrnft:simple-json-processor:0.1.0.9'
 ```
 
 If you are not using Jack you can use the android-apt Gradle plugin instead of using the `annotationProcessor` configuration 
