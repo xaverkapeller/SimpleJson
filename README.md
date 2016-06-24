@@ -18,7 +18,7 @@ compile 'com.github.wrdlbrnft:simple-json:0.1.0.6'
 annotationProcessor 'com.github.wrdlbrnft:simple-json-processor:0.1.0.6'
 ```
 
-If you are not using jack you can use the android-apt Gradle plugin instead of using the `annotationProcessor` configuration 
+If you are not using Jack you can use the android-apt Gradle plugin instead of using the `annotationProcessor` configuration 
 to add the annotation processor of SimpleJson to your module. 
 
 # Basic Usage
