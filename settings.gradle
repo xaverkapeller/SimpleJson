@@ -1,1 +1,2 @@
-include ':app', ':SimpleJson', ':SimpleJsonCompiler', ':CodeBuilder'
+include ':SimpleJson'
+include ':SimpleJsonProcessor'

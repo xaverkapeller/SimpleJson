@@ -1,15 +1,26 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
 
 android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.0"
+    compileSdkVersion 24
+    buildToolsVersion '24.0.0'
 
     defaultConfig {
-        minSdkVersion 11
-        targetSdkVersion 22
-        versionCode 1
-        versionName "1.0"
+        minSdkVersion 14
+        targetSdkVersion 24
     }
+
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+
+    dexOptions {
+        dexInProcess = true
+        maxProcessCount 2
+        javaMaxHeapSize '4g'
+    }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -19,6 +30,43 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:22.0.0'
+}
+
+final bintrayUser = hasProperty('bintray_user') ? property('bintray_user') : ''
+final bintrayApiKey = hasProperty('bintray_api_key') ? property('bintray_api_key') : ''
+final versionName = hasProperty('version_name') ? property('version_name') : ''
+
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier 'source'
+}
+
+publishing {
+    publications {
+        Bintray(MavenPublication) {
+            groupId 'com.github.wrdlbrnft'
+            artifactId 'simple-json'
+            version versionName
+            artifact(sourceJar)
+            artifact("$buildDir/outputs/aar/SimpleJson-release.jar")
+        }
+    }
+}
+
+bintray {
+    user = bintrayUser
+    key = bintrayApiKey
+    publications = ['Bintray']
+    pkg {
+        repo = 'maven'
+        name = 'SimpleJson'
+        userOrg = bintrayUser
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/Wrdlbrnft/SimpleJson'
+        publicDownloadNumbers = true
+        version {
+            name = versionName
+            released = new Date()
+        }
+    }
 }

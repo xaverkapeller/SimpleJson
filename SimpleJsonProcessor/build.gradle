@@ -1,0 +1,54 @@
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+
+repositories {
+    maven {
+        url 'https://dl.bintray.com/wrdlbrnft/maven/'
+    }
+}
+
+sourceCompatibility = 1.7
+
+dependencies {
+    compile 'com.github.wrdlbrnft:code-builder:0.1.0.2'
+}
+
+final bintrayUser = hasProperty('bintray_user') ? property('bintray_user') : ''
+final bintrayApiKey = hasProperty('bintray_api_key') ? property('bintray_api_key') : ''
+final versionName = hasProperty('version_name') ? property('version_name') : ''
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.java.srcDirs
+    classifier 'source'
+}
+
+publishing {
+    publications {
+        Bintray(MavenPublication) {
+            groupId 'com.github.wrdlbrnft'
+            artifactId 'simple-json-processor'
+            version versionName
+            artifact(sourceJar)
+            artifact("$buildDir/libs/SimpleJsonProcessor.jar")
+        }
+    }
+}
+
+bintray {
+    user = bintrayUser
+    key = bintrayApiKey
+    publications = ['Bintray']
+    pkg {
+        repo = 'maven'
+        name = 'SimpleJsonProcessor'
+        userOrg = bintrayUser
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/Wrdlbrnft/SimpleJson'
+        publicDownloadNumbers = true
+        version {
+            name = versionName
+            released = new Date()
+        }
+    }
+}
