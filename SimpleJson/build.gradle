@@ -48,7 +48,7 @@ publishing {
             artifactId 'simple-json'
             version versionName
             artifact(sourceJar)
-            artifact("$buildDir/outputs/aar/SimpleJson-release.jar")
+            artifact("$buildDir/outputs/aar/SimpleJson-release.aar")
         }
     }
 }
