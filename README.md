@@ -31,10 +31,10 @@ To get started just annotate your interface with `@JsonEntity` and use `@FieldNa
 public interface ExampleModel {
     
   @FieldName("id")
-  public long getId();
+  long getId();
 
   @FieldName("text")
-  public String getText();
+  String getText();
 }
 ```
 
