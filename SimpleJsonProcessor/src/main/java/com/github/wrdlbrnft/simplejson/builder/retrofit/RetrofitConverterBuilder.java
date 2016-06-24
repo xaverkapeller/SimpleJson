@@ -7,14 +7,17 @@ import com.github.wrdlbrnft.codebuilder.code.CodeElement;
 import com.github.wrdlbrnft.codebuilder.code.SourceFile;
 import com.github.wrdlbrnft.codebuilder.elements.ifs.If;
 import com.github.wrdlbrnft.codebuilder.elements.values.Values;
+import com.github.wrdlbrnft.codebuilder.executables.Constructor;
 import com.github.wrdlbrnft.codebuilder.executables.ExecutableBuilder;
 import com.github.wrdlbrnft.codebuilder.executables.Method;
 import com.github.wrdlbrnft.codebuilder.executables.Methods;
 import com.github.wrdlbrnft.codebuilder.implementations.Implementation;
+import com.github.wrdlbrnft.codebuilder.types.GenericType;
 import com.github.wrdlbrnft.codebuilder.types.Type;
 import com.github.wrdlbrnft.codebuilder.types.Types;
 import com.github.wrdlbrnft.codebuilder.util.Operators;
 import com.github.wrdlbrnft.codebuilder.util.Utils;
+import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.codebuilder.variables.Variable;
 import com.github.wrdlbrnft.codebuilder.variables.Variables;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
@@ -41,7 +44,6 @@ public class RetrofitConverterBuilder {
     private static final String CONVERTER_FACTORY_NAME = "SimpleJsonConverterFactory";
 
     private static final Method METHOD_GET_RAW_TYPE = Methods.stub("getRawType");
-    private static final Method METHOD_TYPE_TOKEN_OF = Methods.stub("of");
     private static final Method METHOD_GET_ACTUAL_TYPE_ARGUMENTS = Methods.stub("getActualTypeArguments");
 
     private final ProcessingEnvironment mProcessingEnvironment;
@@ -62,7 +64,6 @@ public class RetrofitConverterBuilder {
     private final Type mResponseBodyType;
     private final Type mRequestBodyType;
     private final Type mTypeType;
-    private final Type mTypeTokenType;
     private final Type mAnnotationArrayType;
     private final Type mParameterizedTypeType;
 
@@ -77,9 +78,8 @@ public class RetrofitConverterBuilder {
         final TypeElement bitmapFactoryElement = getTypeElement("android.graphics.BitmapFactory");
         final TypeElement responseBodyElement = getTypeElement("okhttp3.ResponseBody");
         final TypeElement requestBodyElement = getTypeElement("okhttp3.RequestBody");
-        final TypeElement typeTokenElement = getTypeElement("com.google.common.reflect.TypeToken");
 
-        mRetrofitFound = !anyNull(retrofitElement, converterElement, converterFactoryElement, mediaTypeElement, bitmapElement, bitmapFactoryElement, responseBodyElement, requestBodyElement, typeTokenElement);
+        mRetrofitFound = !anyNull(retrofitElement, converterElement, converterFactoryElement, mediaTypeElement, bitmapElement, bitmapFactoryElement, responseBodyElement, requestBodyElement);
 
         mRetrofitType = mRetrofitFound ? Types.of(retrofitElement) : null;
         mConverterType = mRetrofitFound ? Types.of(converterElement) : null;
@@ -90,7 +90,6 @@ public class RetrofitConverterBuilder {
         mResponseBodyType = mRetrofitFound ? Types.of(responseBodyElement) : null;
         mRequestBodyType = mRetrofitFound ? Types.of(requestBodyElement) : null;
         mTypeType = mRetrofitFound ? Types.of(java.lang.reflect.Type.class) : null;
-        mTypeTokenType = mRetrofitFound ? Types.of(typeTokenElement) : null;
         mAnnotationArrayType = mRetrofitFound ? Types.arrayOf(Types.of(Annotation.class)) : null;
         mParameterizedTypeType = mRetrofitFound ? Types.of(ParameterizedType.class) : null;
 
@@ -122,6 +121,8 @@ public class RetrofitConverterBuilder {
         final Type listRequestBodyConverterType = mMultiItemRequestConverterBuilder.build(packageName);
         final Type listResponseBodyConverterType = mMultiItemResponseConverterBuilder.build(packageName);
 
+        final GenericType classTypeWithWildCard = Types.generic(Types.CLASS, Types.wildCard());
+
         final Method getParserMethod = new Method.Builder()
                 .setModifiers(EnumSet.of(Modifier.PRIVATE, Modifier.STATIC))
                 .setReturnType(Types.generic(SimpleJsonTypes.PARSER, Types.wildCard()))
@@ -132,7 +133,7 @@ public class RetrofitConverterBuilder {
                     @Override
                     protected List<Variable> createParameters() {
                         final List<Variable> parameters = new ArrayList<>();
-                        parameters.add(paramClass = Variables.of(Types.generic(Types.CLASS, Types.wildCard())));
+                        parameters.add(paramClass = Variables.of(classTypeWithWildCard));
                         return parameters;
                     }
 
@@ -170,10 +171,113 @@ public class RetrofitConverterBuilder {
                 })
                 .build();
 
+        final Field typeInfoGenericTypeField = new Field.Builder()
+                .setType(classTypeWithWildCard)
+                .setModifiers(EnumSet.of(Modifier.PRIVATE, Modifier.FINAL))
+                .build();
+
+        final Field typeInfoRawTypeField = new Field.Builder()
+                .setType(classTypeWithWildCard)
+                .setModifiers(EnumSet.of(Modifier.PRIVATE, Modifier.FINAL))
+                .build();
+
+        final Implementation typeInfoImplementation = new Implementation.Builder()
+                .addField(typeInfoGenericTypeField)
+                .addField(typeInfoRawTypeField)
+                .setModifiers(EnumSet.of(Modifier.PRIVATE, Modifier.STATIC))
+                .addConstructor(new Constructor.Builder()
+                        .setModifiers(EnumSet.of(Modifier.PRIVATE))
+                        .setCode(new ExecutableBuilder() {
+
+                            private Variable paramRawType;
+                            private Variable paramGenericType;
+
+                            @Override
+                            protected List<Variable> createParameters() {
+                                final List<Variable> parameters = new ArrayList<>();
+                                parameters.add(paramRawType = Variables.of(classTypeWithWildCard));
+                                parameters.add(paramGenericType = Variables.of(classTypeWithWildCard));
+                                return parameters;
+                            }
+
+                            @Override
+                            protected void write(Block block) {
+                                block.set(typeInfoRawTypeField, paramRawType).append(";").newLine();
+                                block.set(typeInfoGenericTypeField, paramGenericType).append(";").newLine();
+                            }
+                        })
+                        .build())
+                .build();
+
+        final Method getTypeInfoMethod = new Method.Builder()
+                .setModifiers(EnumSet.of(Modifier.PRIVATE, Modifier.STATIC))
+                .setReturnType(typeInfoImplementation)
+                .setCode(new ExecutableBuilder() {
+
+                    private Variable paramType;
+
+                    @Override
+                    protected List<Variable> createParameters() {
+                        final List<Variable> parameters = new ArrayList<>();
+                        parameters.add(paramType = Variables.of(mTypeType));
+                        return parameters;
+                    }
+
+                    @Override
+                    protected void write(Block block) {
+                        block.append(new If.Builder()
+                                .add(Operators.operate(paramType, "instanceof", classTypeWithWildCard), new BlockWriter() {
+                                    @Override
+                                    protected void write(Block block) {
+                                        block.append("return ").append(typeInfoImplementation.newInstance(new Block()
+                                                        .append(Types.asCast(classTypeWithWildCard))
+                                                        .append(paramType),
+                                                Values.ofNull()
+                                        )).append(";");
+                                    }
+                                })
+                                .add(Operators.operate(paramType, "instanceof", mParameterizedTypeType), new BlockWriter() {
+                                    @Override
+                                    protected void write(Block block) {
+                                        final Variable varParameterizedType = Variables.of(mParameterizedTypeType, Modifier.FINAL);
+                                        block.set(varParameterizedType, new Block().append(Types.asCast(mParameterizedTypeType)).append(paramType)).append(";").newLine();
+                                        final Variable varRawType = Variables.of(mTypeType, Modifier.FINAL);
+                                        block.set(varRawType, METHOD_GET_RAW_TYPE.callOnTarget(varParameterizedType)).append(";").newLine();
+                                        block.append(new If.Builder()
+                                                .add(Operators.operate(varRawType, "instanceof", classTypeWithWildCard), new BlockWriter() {
+                                                    @Override
+                                                    protected void write(Block block) {
+                                                        block.append("return ").append(typeInfoImplementation.newInstance(
+                                                                new Block().append(Types.asCast(classTypeWithWildCard))
+                                                                        .append(varRawType),
+                                                                new Block().append(Types.asCast(classTypeWithWildCard))
+                                                                        .append(METHOD_GET_ACTUAL_TYPE_ARGUMENTS.callOnTarget(varParameterizedType))
+                                                                        .append("[0]"))
+                                                        ).append(";");
+                                                    }
+                                                })
+                                                .build())
+                                                .newLine();
+                                        block.append("throw ").append(Types.Exceptions.ILLEGAL_STATE_EXCEPTION.newInstance(Values.of("Failed to determine raw type."))).append(";");
+                                    }
+                                })
+                                .setElse(new BlockWriter() {
+                                    @Override
+                                    protected void write(Block block) {
+                                        block.append("throw ").append(Types.Exceptions.ILLEGAL_STATE_EXCEPTION.newInstance(Values.of("Failed to determine raw type."))).append(";");
+                                    }
+                                })
+                                .build());
+                    }
+                })
+                .build();
+
         final Implementation converterFactoryImplementation = new Implementation.Builder()
                 .setName(CONVERTER_FACTORY_NAME)
                 .setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL))
                 .setExtendedType(mConverterFactoryType)
+                .addNestedImplementation(typeInfoImplementation)
+                .addMethod(getTypeInfoMethod)
                 .addMethod(getParserMethod)
                 .addMethod(new Method.Builder()
                         .setName("responseBodyConverter")
@@ -197,11 +301,11 @@ public class RetrofitConverterBuilder {
 
                             @Override
                             protected void write(Block block) {
-                                final Variable varTypeToken = Variables.of(mTypeTokenType, Modifier.FINAL);
-                                block.set(varTypeToken, METHOD_TYPE_TOKEN_OF.callOnTarget(mTypeTokenType, paramType)).append(";").newLine();
+                                final Variable varTypeInfo = Variables.of(typeInfoImplementation, Modifier.FINAL);
+                                block.set(varTypeInfo, getTypeInfoMethod.call(paramType)).append(";").newLine();
 
-                                final Variable varClass = Variables.of(Types.generic(Types.CLASS, Types.wildCard()), Modifier.FINAL);
-                                block.set(varClass, METHOD_GET_RAW_TYPE.callOnTarget(varTypeToken)).append(";").newLine();
+                                final Variable varClass = Variables.of(classTypeWithWildCard, Modifier.FINAL);
+                                block.set(varClass, new Block().append(varTypeInfo).append(".").append(typeInfoRawTypeField)).append(";").newLine();
 
                                 block.append(new If.Builder()
                                         .add(Methods.EQUALS.callOnTarget(mBitmapType.classObject(), varClass), new BlockWriter() {
@@ -213,19 +317,8 @@ public class RetrofitConverterBuilder {
                                         .add(Methods.EQUALS.callOnTarget(Types.LIST.classObject(), varClass), new BlockWriter() {
                                             @Override
                                             protected void write(Block block) {
-                                                final Variable varParameterizeType = Variables.of(mParameterizedTypeType, Modifier.FINAL);
-                                                block.set(varParameterizeType,
-                                                        new Block().append(Types.asCast(mParameterizedTypeType)).append(paramType))
-                                                        .append(";").newLine();
-
-                                                final Variable varItemType = Variables.of(Types.generic(Types.CLASS, Types.wildCard()), Modifier.FINAL);
-                                                block.set(varItemType,
-                                                        METHOD_GET_RAW_TYPE.callOnTarget(
-                                                                METHOD_TYPE_TOKEN_OF.callOnTarget(mTypeTokenType,
-                                                                        new Block().append(METHOD_GET_ACTUAL_TYPE_ARGUMENTS.callOnTarget(varParameterizeType)).append("[0]")
-                                                                )
-                                                        )
-                                                ).append(";").newLine();
+                                                final Variable varItemType = Variables.of(classTypeWithWildCard, Modifier.FINAL);
+                                                block.set(varItemType, new Block().append(varTypeInfo).append(".").append(typeInfoGenericTypeField)).append(";").newLine();
 
                                                 final Variable varParser = Variables.of(Types.generic(SimpleJsonTypes.PARSER, Types.wildCard()), Modifier.FINAL);
                                                 block.set(varParser, getParserMethod.call(varItemType)).append(";").newLine();
@@ -266,29 +359,18 @@ public class RetrofitConverterBuilder {
 
                             @Override
                             protected void write(Block block) {
-                                final Variable varTypeToken = Variables.of(mTypeTokenType, Modifier.FINAL);
-                                block.set(varTypeToken, METHOD_TYPE_TOKEN_OF.callOnTarget(mTypeTokenType, paramType)).append(";").newLine();
+                                final Variable varTypeInfo = Variables.of(typeInfoImplementation, Modifier.FINAL);
+                                block.set(varTypeInfo, getTypeInfoMethod.call(paramType)).append(";").newLine();
 
-                                final Variable varClass = Variables.of(Types.generic(Types.CLASS, Types.wildCard()), Modifier.FINAL);
-                                block.set(varClass, METHOD_GET_RAW_TYPE.callOnTarget(varTypeToken)).append(";").newLine();
+                                final Variable varClass = Variables.of(classTypeWithWildCard, Modifier.FINAL);
+                                block.set(varClass, new Block().append(varTypeInfo).append(".").append(typeInfoRawTypeField)).append(";").newLine();
 
                                 block.append(new If.Builder()
                                         .add(Methods.EQUALS.callOnTarget(Types.LIST.classObject(), varClass), new BlockWriter() {
                                             @Override
                                             protected void write(Block block) {
-                                                final Variable varParameterizeType = Variables.of(mParameterizedTypeType, Modifier.FINAL);
-                                                block.set(varParameterizeType,
-                                                        new Block().append(Types.asCast(mParameterizedTypeType)).append(paramType))
-                                                        .append(";").newLine();
-
-                                                final Variable varItemType = Variables.of(Types.generic(Types.CLASS, Types.wildCard()), Modifier.FINAL);
-                                                block.set(varItemType,
-                                                        METHOD_GET_RAW_TYPE.callOnTarget(
-                                                                METHOD_TYPE_TOKEN_OF.callOnTarget(mTypeTokenType,
-                                                                        new Block().append(METHOD_GET_ACTUAL_TYPE_ARGUMENTS.callOnTarget(varParameterizeType)).append("[0]")
-                                                                )
-                                                        )
-                                                ).append(";").newLine();
+                                                final Variable varItemType = Variables.of(classTypeWithWildCard, Modifier.FINAL);
+                                                block.set(varItemType, new Block().append(varTypeInfo).append(".").append(typeInfoGenericTypeField)).append(";").newLine();
 
                                                 final Variable varParser = Variables.of(Types.generic(SimpleJsonTypes.PARSER, Types.wildCard()), Modifier.FINAL);
                                                 block.set(varParser, getParserMethod.call(varItemType)).append(";").newLine();
