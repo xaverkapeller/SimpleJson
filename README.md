@@ -1,6 +1,6 @@
 # SimpleJson
 
-A simple and lightning fast JSON Parser for Android with barely any runtime overhead!
+The next generation JSON Parser for Android!
 
 * **No slow reflection, full performance**: SimpleJson uses compile time annotation processing to generate performant and efficient implementations of models and parsers. No performance hit due to reflection at runtime.
 * **Most errors caught at compile time**: SimpleJson will check for most common errors at compile time and give you useful and detailed error messages.
