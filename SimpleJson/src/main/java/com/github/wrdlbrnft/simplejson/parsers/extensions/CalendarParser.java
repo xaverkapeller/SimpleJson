@@ -8,7 +8,6 @@ import java.util.Date;
 /**
  * Created by kapeller on 21/06/16.
  */
-
 public class CalendarParser extends ParserExtension<Date, Calendar> {
 
     public CalendarParser() {

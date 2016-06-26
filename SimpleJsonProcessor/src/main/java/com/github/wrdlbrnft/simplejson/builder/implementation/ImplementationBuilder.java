@@ -248,41 +248,4 @@ public class ImplementationBuilder {
             mInternalType = type;
         }
     }
-
-    private class Test {
-
-        private String a;
-        private int b;
-        private long c;
-        private double e;
-        private boolean f;
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-
-            Test test = (Test) o;
-
-            if (b != test.b) return false;
-            if (c != test.c) return false;
-            if (Double.compare(test.e, e) != 0) return false;
-            if (f != test.f) return false;
-            return a != null ? a.equals(test.a) : test.a == null;
-
-        }
-
-        @Override
-        public int hashCode() {
-            int result;
-            long temp;
-            result = a != null ? a.hashCode() : 0;
-            result = 31 * result + b;
-            result = 31 * result + (int) (c ^ (c >>> 32));
-            temp = Double.doubleToLongBits(e);
-            result = 31 * result + (int) (temp ^ (temp >>> 32));
-            result = 31 * result + (f ? 1 : 0);
-            return result;
-        }
-    }
 }
