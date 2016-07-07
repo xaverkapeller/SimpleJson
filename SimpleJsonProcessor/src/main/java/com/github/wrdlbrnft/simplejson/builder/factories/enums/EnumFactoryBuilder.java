@@ -75,7 +75,7 @@ public class EnumFactoryBuilder {
                 .build());
 
         builder.addMethod(new Method.Builder()
-                .setReturnType(enumType)
+                .setReturnType(Types.STRING)
                 .setName(EnumParserBuilder.METHOD_NAME_FORMAT)
                 .setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.STATIC))
                 .setCode(new ExecutableBuilder() {
