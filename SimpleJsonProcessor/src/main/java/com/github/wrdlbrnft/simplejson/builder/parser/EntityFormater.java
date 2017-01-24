@@ -30,7 +30,7 @@ class EntityFormater {
     public void formatValue(Block block, MappedValue mappedValue, Variable varJsonObject, Variable varEntity) {
         final MethodPairInfo info = mappedValue.getMethodPairInfo();
         final TypeMirror type = mappedValue.getItemType();
-        final Field parser = mParserResolver.getElementParserField(type);
+        final Field parser = mParserResolver.getElementParserField(mappedValue);
 
         block.append(parser).append(".toJsonObject(")
                 .append(varJsonObject).append(", ")
@@ -50,7 +50,7 @@ class EntityFormater {
     private void formatCollection(Block block, final MappedValue mappedValue, Variable varJsonObject, final Variable varEntity) {
         final MethodPairInfo info = mappedValue.getMethodPairInfo();
         final TypeMirror type = mappedValue.getItemType();
-        final Field parser = mParserResolver.getElementParserField(type);
+        final Field parser = mParserResolver.getElementParserField(mappedValue);
         final Variable varJsonArray = Variables.of(SimpleJsonTypes.JSON_ARRAY);
         block.set(varJsonArray, SimpleJsonTypes.JSON_ARRAY.newInstance()).append(";").newLine();
 

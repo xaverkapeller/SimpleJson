@@ -54,14 +54,11 @@ public class ImplementationBuilder {
         mTypeSet = mProcessingEnvironment.getElementUtils().getTypeElement("java.util.Set").asType();
     }
 
-    public ImplementationResult build(TypeElement model) throws IOException {
-
-        final String implClassName = Utils.createGeneratedClassName(model, "", "$Impl");
+    public ImplementationResult build(TypeElement model) {
 
         mBuilder = new Implementation.Builder();
-        mBuilder.setName(implClassName);
         mBuilder.addImplementedType(Types.of(model));
-        mBuilder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
+        mBuilder.setModifiers(EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
 
         final List<MappedValue> mappedValues = new ArrayList<>();
         final List<MethodPairInfo> infos = mAnalyzer.analyze(model);
@@ -96,11 +93,7 @@ public class ImplementationBuilder {
         final Implementation implementation = mBuilder.build();
         lazyImplType.setType(implementation);
 
-        final SourceFile sourceFile = SourceFile.create(mProcessingEnvironment, Utils.getPackageName(model));
-        final Type implType = sourceFile.write(implementation);
-        sourceFile.flushAndClose();
-
-        return new ImplementationResult(implType, model, mappedValues);
+        return new ImplementationResult(implementation, model, mappedValues);
     }
 
     private MappedValue createMappedValueWrapper(MethodPairInfo info) {

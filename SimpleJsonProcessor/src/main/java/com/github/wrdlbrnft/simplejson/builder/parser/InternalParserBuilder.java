@@ -1,13 +1,11 @@
 package com.github.wrdlbrnft.simplejson.builder.parser;
 
 import com.github.wrdlbrnft.codebuilder.annotations.Annotations;
-import com.github.wrdlbrnft.codebuilder.code.SourceFile;
 import com.github.wrdlbrnft.codebuilder.executables.Method;
 import com.github.wrdlbrnft.codebuilder.executables.Methods;
 import com.github.wrdlbrnft.codebuilder.implementations.Implementation;
 import com.github.wrdlbrnft.codebuilder.types.Type;
 import com.github.wrdlbrnft.codebuilder.types.Types;
-import com.github.wrdlbrnft.codebuilder.util.Utils;
 import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
@@ -21,7 +19,6 @@ import java.util.List;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.TypeMirror;
 
 /**
  * Created by kapeller on 21/04/15.
@@ -49,17 +46,15 @@ public class InternalParserBuilder {
         mBuildCache = buildCache;
     }
 
-    public Type build(TypeElement interfaceElement, ImplementationResult implementationResult) throws IOException {
+    public Implementation build(TypeElement interfaceElement, ImplementationResult implementationResult) {
         final List<MappedValue> mappedValues = implementationResult.getMappedValues();
         final Type implType = implementationResult.getImplType();
 
         final Type interfaceType = Types.of(interfaceElement);
         final Type parserType = Types.generic(SimpleJsonTypes.BASE_PARSER, interfaceType);
-        final String parserClassName = Utils.createGeneratedClassName(interfaceElement, "", "Parser");
 
         final Implementation.Builder builder = new Implementation.Builder();
-        builder.setName(parserClassName);
-        builder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
+        builder.setModifiers(EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
         builder.setExtendedType(parserType);
 
         final ElementParserResolver parserResolver = new ElementParserResolver(mProcessingEnvironment, interfaceElement, mBuildCache);
@@ -92,20 +87,13 @@ public class InternalParserBuilder {
             builder.addField(field);
         }
 
-        final Implementation parserImplementation = builder.build();
-        final SourceFile sourceFile = SourceFile.create(mProcessingEnvironment, Utils.getPackageName(interfaceElement));
-        final Type type = sourceFile.write(parserImplementation);
-        sourceFile.flushAndClose();
-
-
-        return type;
+        return builder.build();
     }
 
-    private void prepareFieldsForLazyEvaluation(List<MappedValue> mappedValues, ElementParserResolver parserResolver) throws IOException {
+    private void prepareFieldsForLazyEvaluation(List<MappedValue> mappedValues, ElementParserResolver parserResolver) {
         for (int i = 0, count = mappedValues.size(); i < count; i++) {
             final MappedValue mappedValue = mappedValues.get(i);
-            final TypeMirror itemType = mappedValue.getItemType();
-            parserResolver.getElementParserField(itemType);
+            parserResolver.getElementParserField(mappedValue);
         }
     }
 }

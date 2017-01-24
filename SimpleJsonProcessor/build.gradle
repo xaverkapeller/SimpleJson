@@ -5,7 +5,7 @@ apply plugin: 'com.jfrog.bintray'
 sourceCompatibility = 1.7
 
 dependencies {
-    compile 'com.github.wrdlbrnft:code-builder:0.1.0.2'
+    compile 'com.github.wrdlbrnft:code-builder:0.2.0.11'
 }
 
 final bintrayUser = hasProperty('bintray_user') ? property('bintray_user') : ''

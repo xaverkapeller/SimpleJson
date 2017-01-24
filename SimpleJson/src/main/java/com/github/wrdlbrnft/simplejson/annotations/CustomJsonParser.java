@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 /**
  * Created by kapeller on 10/06/16.
  */
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface CustomJsonParser {
 }

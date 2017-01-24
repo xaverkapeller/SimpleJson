@@ -4,7 +4,6 @@ import com.github.wrdlbrnft.codebuilder.types.Type;
 import com.github.wrdlbrnft.codebuilder.types.Types;
 import com.github.wrdlbrnft.codebuilder.util.Utils;
 import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
-import com.github.wrdlbrnft.simplejson.builder.retrofit.RetrofitConverterBuilder;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -28,8 +27,6 @@ public class SimpleJsonProcessor extends AbstractProcessor {
     private static final String ELEMENT_PARSER_TYPE_NAME = "com.github.wrdlbrnft.simplejson.parsers.ElementParser";
 
     private ParserBuilder mParserBuilder;
-    private ParserBuilder.ParserCollection mParserCollection;
-    private RetrofitConverterBuilder mRetrofitConverterBuilder;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnvironment) {
@@ -51,16 +48,15 @@ public class SimpleJsonProcessor extends AbstractProcessor {
 
     private void tryProcess(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) throws IOException {
         mParserBuilder = new ParserBuilder(processingEnv);
-        mParserCollection = mParserBuilder.getParserCollection();
-        mRetrofitConverterBuilder = new RetrofitConverterBuilder(processingEnv);
+        final ParserBuilder.ParserCollection parserCollection = mParserBuilder.getParserCollection();
 
         final Map<String, Type> customParserMap = createCustomParserMap(annotations, roundEnv);
-        mParserCollection.registerCustomParsers(customParserMap);
+        parserCollection.registerCustomParsers(customParserMap);
 
         tryHandleAnnotations(annotations, roundEnv);
 
 //        if (roundEnv.processingOver()) {
-        mRetrofitConverterBuilder.build(mParserCollection);
+//        mRetrofitConverterBuilder.build(mParserCollection);
 //        }
     }
 

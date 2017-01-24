@@ -1,5 +1,8 @@
 package com.github.wrdlbrnft.simplejson.builder.implementation;
 
+import com.github.wrdlbrnft.codebuilder.util.Utils;
+
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 
 /**
@@ -41,5 +44,13 @@ public class MethodPairInfo {
 
     public void setSetter(ExecutableElement setter) {
         this.mSetter = setter;
+    }
+
+    public AnnotationValue findAnnotationValue(String annotationClassName, String fieldName) {
+        final AnnotationValue getterAnnotationMirror = Utils.getAnnotationValue(mGetter, annotationClassName, fieldName);
+        if (getterAnnotationMirror != null) {
+            return getterAnnotationMirror;
+        }
+        return Utils.getAnnotationValue(mSetter, annotationClassName, fieldName);
     }
 }

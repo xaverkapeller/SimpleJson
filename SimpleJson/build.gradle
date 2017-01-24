@@ -3,12 +3,12 @@ apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion '24.0.0'
+    compileSdkVersion 25
+    buildToolsVersion '25.0.1'
 
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 24
+        targetSdkVersion 25
     }
 
     lintOptions {
@@ -34,7 +34,7 @@ dependencies {
 
 final bintrayUser = hasProperty('bintray_user') ? property('bintray_user') : ''
 final bintrayApiKey = hasProperty('bintray_api_key') ? property('bintray_api_key') : ''
-final versionName = hasProperty('version_name') ? property('version_name') : ''
+final versionName = hasProperty('version_name') ? property('version_name') : '0.1.0.0'
 
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs

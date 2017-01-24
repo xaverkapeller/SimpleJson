@@ -1,7 +1,6 @@
 package com.github.wrdlbrnft.simplejson.builder.factories.entity;
 
 import com.github.wrdlbrnft.codebuilder.code.Block;
-import com.github.wrdlbrnft.codebuilder.code.SourceFile;
 import com.github.wrdlbrnft.codebuilder.executables.ExecutableBuilder;
 import com.github.wrdlbrnft.codebuilder.executables.Method;
 import com.github.wrdlbrnft.codebuilder.implementations.Implementation;
@@ -13,16 +12,17 @@ import com.github.wrdlbrnft.codebuilder.variables.Variable;
 import com.github.wrdlbrnft.codebuilder.variables.Variables;
 import com.github.wrdlbrnft.simplejson.SimpleJsonAnnotations;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
+import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
+import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationBuilder;
 import com.github.wrdlbrnft.simplejson.builder.parser.InternalParserBuilder;
 import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
 import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.List;
 
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -32,19 +32,31 @@ import javax.lang.model.element.TypeElement;
  */
 public class JsonEntityFactoryBuilder {
 
-    private final ProcessingEnvironment mProcessingEnvironment;
+    private final ParserBuilder.BuildCache mBuildCache;
+    private final ImplementationBuilder mImplementationBuilder;
+    private final InternalParserBuilder mInternalParserBuilder;
 
-    public JsonEntityFactoryBuilder(ProcessingEnvironment processingEnvironment) {
-        mProcessingEnvironment = processingEnvironment;
+    public JsonEntityFactoryBuilder(ParserBuilder.BuildCache buildCache, ImplementationBuilder implementationBuilder, InternalParserBuilder internalParserBuilder) {
+        mBuildCache = buildCache;
+        mImplementationBuilder = implementationBuilder;
+        mInternalParserBuilder = internalParserBuilder;
     }
 
-    public void build(Type parserType, ImplementationResult result) throws IOException {
+    public Implementation build(TypeElement interfaceElement) {
+
+        final Implementation.Builder builder = new Implementation.Builder();
+        mBuildCache.registerParent(builder);
+
+        final ImplementationResult result = mImplementationBuilder.build(interfaceElement);
+        builder.addNestedImplementation(result.getImplType());
+        final Implementation parserType = mInternalParserBuilder.build(interfaceElement, result);
+        builder.addNestedImplementation(parserType);
+
         final TypeElement element = result.getInterfaceType();
         final Type entityType = Types.of(element);
 
         final String factoryName = createFactoryName(element);
 
-        final Implementation.Builder builder = new Implementation.Builder();
         builder.setName(factoryName);
         builder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
 
@@ -158,11 +170,7 @@ public class JsonEntityFactoryBuilder {
                 })
                 .build());
 
-        final Implementation factoryImplementation = builder.build();
-
-        final SourceFile sourceFile = SourceFile.create(mProcessingEnvironment, Utils.getPackageName(element));
-        sourceFile.write(factoryImplementation);
-        sourceFile.flushAndClose();
+        return builder.build();
     }
 
     private String createFactoryName(TypeElement element) {

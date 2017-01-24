@@ -32,7 +32,7 @@ class EntityParser {
     public Variable parseValue(Block block, MappedValue mappedValue, final Variable varJsonObject) {
         final CodeElement key = Values.of(mappedValue.getFieldName());
         final TypeMirror type = mappedValue.getItemType();
-        final Field parser = mElementParserResolver.getElementParserField(type);
+        final Field parser = mElementParserResolver.getElementParserField(mappedValue);
         final Variable variable = Variables.of(Types.of(type), Modifier.FINAL);
 
         if (mappedValue.isOptional()) {
@@ -59,7 +59,7 @@ class EntityParser {
 
     public Variable parseList(Block block, final MappedValue mappedValue, final Variable varJsonObject) {
         final TypeMirror itemType = mappedValue.getItemType();
-        final Field parser = mElementParserResolver.getElementParserField(itemType);
+        final Field parser = mElementParserResolver.getElementParserField(mappedValue);
         final Variable varList = Variables.of(Types.generic(Types.LIST, Types.of(itemType)), Modifier.FINAL);
         block.set(varList, Types.generic(Types.ARRAY_LIST, Types.of(itemType)).newInstance()).append(";").newLine();
 
@@ -71,7 +71,7 @@ class EntityParser {
 
     public Variable parseSet(Block block, final MappedValue mappedValue, final Variable varJsonObject) {
         final TypeMirror itemType = mappedValue.getItemType();
-        final Field parser = mElementParserResolver.getElementParserField(itemType);
+        final Field parser = mElementParserResolver.getElementParserField(mappedValue);
         final Variable varSet = Variables.of(Types.generic(Types.SET, Types.of(itemType)), Modifier.FINAL);
         block.set(varSet, Types.generic(Types.HASH_SET, Types.of(itemType)).newInstance()).append(";").newLine();
 

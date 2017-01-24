@@ -1,6 +1,9 @@
 package com.github.wrdlbrnft.simplejson.builder;
 
+import com.github.wrdlbrnft.codebuilder.code.SourceFile;
+import com.github.wrdlbrnft.codebuilder.implementations.Implementation;
 import com.github.wrdlbrnft.codebuilder.types.Type;
+import com.github.wrdlbrnft.codebuilder.util.Utils;
 import com.github.wrdlbrnft.simplejson.builder.enums.EnumParserBuilder;
 import com.github.wrdlbrnft.simplejson.builder.factories.entity.JsonEntityFactoryBuilder;
 import com.github.wrdlbrnft.simplejson.builder.factories.enums.EnumFactoryBuilder;
@@ -9,7 +12,9 @@ import com.github.wrdlbrnft.simplejson.builder.parser.InternalParserBuilder;
 import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -20,11 +25,16 @@ import javax.lang.model.element.TypeElement;
  */
 public class ParserBuilder {
 
+    private final ProcessingEnvironment mProcessingEnvironment;
+
     public interface BuildCache {
         Type getEnumParser(TypeElement element);
         Type getEntityParser(TypeElement element);
         Type getCustomParser(TypeElement element);
+        void registerParent(Implementation.Builder builder);
         boolean hasEntityParser(TypeElement element);
+        List<Implementation> getImplementations();
+        void clear();
     }
 
     public interface ParserCollection {
@@ -41,6 +51,7 @@ public class ParserBuilder {
     private final ParserCollection mParserCollection;
 
     public ParserBuilder(ProcessingEnvironment processingEnvironment) {
+        mProcessingEnvironment = processingEnvironment;
         final BuildCacheParserCollection collection = new BuildCacheParserCollection();
         mBuildCache = collection;
         mParserCollection = collection;
@@ -48,16 +59,18 @@ public class ParserBuilder {
         mImplementationBuilder = new ImplementationBuilder(processingEnvironment);
         mEnumParserBuilder = new EnumParserBuilder(processingEnvironment);
         mInternalParserBuilder = new InternalParserBuilder(processingEnvironment, collection);
-        mFactoryBuilder = new JsonEntityFactoryBuilder(processingEnvironment);
+        mFactoryBuilder = new JsonEntityFactoryBuilder(mBuildCache, mImplementationBuilder, mInternalParserBuilder);
         mEnumFactoryBuilder = new EnumFactoryBuilder(processingEnvironment);
     }
 
-    public void build(TypeElement interfaceElement) throws IOException {
-        if (mBuildCache.hasEntityParser(interfaceElement)) {
-            return;
+    public void build(TypeElement element) throws IOException {
+        try {
+            final SourceFile sourceFile = SourceFile.create(mProcessingEnvironment, Utils.getPackageName(element));
+            sourceFile.write(mFactoryBuilder.build(element));
+            sourceFile.flushAndClose();
+        } finally {
+            mBuildCache.clear();
         }
-
-        mBuildCache.getEntityParser(interfaceElement);
     }
 
     public ParserCollection getParserCollection() {
@@ -66,16 +79,16 @@ public class ParserBuilder {
 
     private class BuildCacheParserCollection implements BuildCache, ParserCollection {
 
-        private final Map<TypeElement, Type> mEntityToParserMap = new HashMap<>();
-
-        private final Map<String, Type> mClassNameToEnumParserMap = new HashMap<>();
-        private final Map<String, Type> mClassNameToEntityParserMap = new HashMap<>();
+        private final Map<String, Implementation> mClassNameToEnumParserMap = new HashMap<>();
+        private final Map<String, Implementation> mClassNameToEntityParserMap = new HashMap<>();
         private final Map<String, Type> mClassNameToCustomParserMap = new HashMap<>();
+
+        private Implementation.Builder mParent;
 
         @Override
         public Type getEnumParser(TypeElement element) {
             final String qualifiedName = element.getQualifiedName().toString();
-            final Type cachedType = mClassNameToEnumParserMap.get(qualifiedName);
+            final Implementation cachedType = mClassNameToEnumParserMap.get(qualifiedName);
             if (cachedType != null) {
                 return cachedType;
             }
@@ -103,36 +116,59 @@ public class ParserBuilder {
         }
 
         @Override
+        public void registerParent(Implementation.Builder builder) {
+            mParent = builder;
+        }
+
+        @Override
         public boolean hasEntityParser(TypeElement element) {
             final String qualifiedName = element.getQualifiedName().toString();
             return mClassNameToEntityParserMap.containsKey(qualifiedName);
         }
 
-        private void createEnumParser(TypeElement element, String qualifiedName) {
-            try {
-                final Type parserType = mEnumParserBuilder.build(element);
-                mEnumFactoryBuilder.build(parserType, element);
-                mClassNameToEnumParserMap.put(qualifiedName, parserType);
-            } catch (IOException e) {
-                throw new IllegalStateException("SimpleJson Processor is broken! Do you have enough disk space?", e);
+        @Override
+        public List<Implementation> getImplementations() {
+            final List<Implementation> implementations = new ArrayList<>();
+
+            for (String key : mClassNameToEnumParserMap.keySet()) {
+                final Implementation implementation = mClassNameToEnumParserMap.get(key);
+                implementations.add(implementation);
             }
+
+            for (String key : mClassNameToEntityParserMap.keySet()) {
+                final Implementation implementation = mClassNameToEntityParserMap.get(key);
+                implementations.add(implementation);
+            }
+
+            return implementations;
+        }
+
+        @Override
+        public void clear() {
+            mClassNameToCustomParserMap.clear();
+            mClassNameToEntityParserMap.clear();
+            mClassNameToEnumParserMap.clear();
+        }
+
+        private void createEnumParser(TypeElement element, String qualifiedName) {
+            final Implementation parserType = mEnumParserBuilder.build(element);
+            final Implementation factoryImpl = mEnumFactoryBuilder.build(parserType, element);
+            mClassNameToEnumParserMap.put(qualifiedName, parserType);
+            mParent.addNestedImplementation(parserType);
+            mParent.addNestedImplementation(factoryImpl);
         }
 
         private void createImplementationAndParser(TypeElement element, String qualifiedName) {
-            try {
-                final ImplementationResult result = mImplementationBuilder.build(element);
-                final Type parserType = mInternalParserBuilder.build(element, result);
-                mFactoryBuilder.build(parserType, result);
-                mClassNameToEntityParserMap.put(qualifiedName, parserType);
-                mEntityToParserMap.put(element, parserType);
-            } catch (IOException e) {
-                throw new IllegalStateException("SimpleJson Processor is broken! Do you have enough disk space?", e);
-            }
+            final ImplementationResult result = mImplementationBuilder.build(element);
+            final Implementation parserType = mInternalParserBuilder.build(element, result);
+            mClassNameToEntityParserMap.put(qualifiedName, parserType);
+            mParent.addNestedImplementation(result.getImplType());
+            mParent.addNestedImplementation(parserType);
         }
 
         @Override
         public Map<TypeElement, Type> getEntityToParserMap() {
-            return mEntityToParserMap;
+            return null;
         }
 
         @Override

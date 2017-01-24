@@ -1,7 +1,6 @@
 package com.github.wrdlbrnft.simplejson.builder.factories.enums;
 
 import com.github.wrdlbrnft.codebuilder.code.Block;
-import com.github.wrdlbrnft.codebuilder.code.SourceFile;
 import com.github.wrdlbrnft.codebuilder.executables.ExecutableBuilder;
 import com.github.wrdlbrnft.codebuilder.executables.Method;
 import com.github.wrdlbrnft.codebuilder.executables.Methods;
@@ -15,7 +14,6 @@ import com.github.wrdlbrnft.codebuilder.variables.Variables;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejson.builder.enums.EnumParserBuilder;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -38,12 +36,12 @@ public class EnumFactoryBuilder {
         mProcessingEnvironment = processingEnvironment;
     }
 
-    public void build(Type parserType, TypeElement enumElement) throws IOException {
+    public Implementation build(Type parserType, TypeElement enumElement) {
         final Type enumType = Types.of(enumElement);
 
         final Implementation.Builder builder = new Implementation.Builder();
         builder.setName(createFactoryName(enumElement));
-        builder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
+        builder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL));
 
         final Field parserField = new Field.Builder()
                 .setType(Types.generic(SimpleJsonTypes.ENUM_PARSER, enumType))
@@ -96,11 +94,11 @@ public class EnumFactoryBuilder {
                 })
                 .build());
 
-        final Implementation factoryImplementation = builder.build();
+        return builder.build();
 
-        final SourceFile sourceFile = SourceFile.create(mProcessingEnvironment, Utils.getPackageName(enumElement));
-        sourceFile.write(factoryImplementation);
-        sourceFile.flushAndClose();
+//        final SourceFile sourceFile = SourceFile.create(mProcessingEnvironment, Utils.getPackageName(enumElement));
+//        sourceFile.write(factoryImplementation);
+//        sourceFile.flushAndClose();
     }
 
     private String createFactoryName(TypeElement element) {

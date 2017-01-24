@@ -7,6 +7,8 @@ import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.simplejson.SimpleJsonAnnotations;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
+import com.github.wrdlbrnft.simplejson.builder.implementation.MethodPairInfo;
+import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
@@ -40,7 +43,8 @@ class ElementParserResolver {
         mBuildCache = buildCache;
     }
 
-    public Field getElementParserField(TypeMirror type) {
+    public Field getElementParserField(MappedValue mappedValue) {
+        final TypeMirror type = mappedValue.getItemType();
 
         final TypeElement element = (TypeElement) mProcessingEnvironment.getTypeUtils().asElement(type);
         final String key = type.toString();
@@ -95,16 +99,27 @@ class ElementParserResolver {
                     mBuildCache.getEntityParser(element)
             );
         } else {
-            final Type parser = mBuildCache.getCustomParser(element);
-            if (parser == null) {
-                mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not find a parser for " + element.getSimpleName() + "!!1 Have you forgot to annotate it? If the class is a framework class then most likely it is not supported to be used in entities created with this library.", mInterfaceType);
-                return null;
-            }
+            final MethodPairInfo methodPairInfo = mappedValue.getMethodPairInfo();
+            final AnnotationValue parserClassValue = methodPairInfo.findAnnotationValue(SimpleJsonAnnotations.FIELD_NAME, "parserClass");
+            if (parserClassValue != null) {
+                final TypeMirror parserTypeMirror = (TypeMirror) parserClassValue.getValue();
+                field = createElementParserField(
+                        Types.generic(SimpleJsonTypes.ELEMENT_PARSER, Types.of(type)),
+                        Types.of(parserTypeMirror)
+                );
+            } else {
 
-            field = createElementParserField(
-                    Types.generic(SimpleJsonTypes.ELEMENT_PARSER, Types.of(type)),
-                    parser
-            );
+                final Type parser = mBuildCache.getCustomParser(element);
+                if (parser == null) {
+                    mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not find a parser for " + element.getSimpleName() + "!!1 Have you forgot to annotate it? If the class is a framework class then most likely it is not supported to be used in entities created with this library.", mInterfaceType);
+                    return null;
+                }
+
+                field = createElementParserField(
+                        Types.generic(SimpleJsonTypes.ELEMENT_PARSER, Types.of(type)),
+                        parser
+                );
+            }
         }
 
         mParserMap.put(key, field);

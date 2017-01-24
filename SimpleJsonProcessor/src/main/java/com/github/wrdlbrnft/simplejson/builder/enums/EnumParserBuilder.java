@@ -1,15 +1,11 @@
 package com.github.wrdlbrnft.simplejson.builder.enums;
 
-import com.github.wrdlbrnft.codebuilder.code.SourceFile;
 import com.github.wrdlbrnft.codebuilder.executables.Method;
-import com.github.wrdlbrnft.codebuilder.executables.Methods;
 import com.github.wrdlbrnft.codebuilder.implementations.Implementation;
 import com.github.wrdlbrnft.codebuilder.types.Type;
 import com.github.wrdlbrnft.codebuilder.types.Types;
-import com.github.wrdlbrnft.codebuilder.util.Utils;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 
-import java.io.IOException;
 import java.util.EnumSet;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -32,16 +28,13 @@ public class EnumParserBuilder {
         mEnumAnalyzer = new EnumAnalyzer(environment);
     }
 
-    public Type build(TypeElement enumElement) throws IOException {
+    public Implementation build(TypeElement enumElement) {
         final EnumAnalyzerResult result = mEnumAnalyzer.analyze(enumElement);
 
         final Type enumType = Types.of(enumElement);
-        final String packageName = Utils.getPackageName(enumElement);
-        final String className = Utils.createGeneratedClassName(enumElement, "", "Parser");
 
         final Implementation.Builder builder = new Implementation.Builder();
-        builder.setName(className);
-        builder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
+        builder.setModifiers(EnumSet.of(Modifier.PRIVATE, Modifier.STATIC));
         builder.setExtendedType(Types.generic(SimpleJsonTypes.BASE_ENUM_PARSER, enumType));
 
         final Method parse = new Method.Builder()
@@ -62,11 +55,6 @@ public class EnumParserBuilder {
                 .build();
         builder.addMethod(format);
 
-        final Implementation parserImplementation = builder.build();
-
-        final SourceFile sourceFile = SourceFile.create(mProcessingEnvironment, packageName);
-        final Type type = sourceFile.write(parserImplementation);
-        sourceFile.flushAndClose();
-        return type;
+        return builder.build();
     }
 }
