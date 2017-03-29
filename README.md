@@ -7,19 +7,15 @@ The next generation JSON Parser for Android!
 * **Generates real debuggable code**: You can view the model and parser implementations at any time and debug any error and behaviour. No more guessing what went wrong.
 * **Easy to use and quick to setup**: Getting SimpleJson to work requires no setup and after adding only a few annotations on your models you are good to go.
 * **Works with ProGuard**: With SimpleJson you don't need to mess around with ProGuard rules and worry about keeping the right classes. Every bit of your code can be obfuscated without worrying about a thing.
-* **Works with Retrofit2**: SimpleJson automatically detects if Retrofit2 is used in your project and automatically sets everything up so that Retrofit2 can work with your entities seamlessly!
 
 # How to add it to your project
 
-If you are using the new Jack compiler all you have to add is these two dependencies:
+Just add is these two dependencies to your build.gradle file:
 
 ```groovy
-compile 'com.github.wrdlbrnft:simple-json:0.1.0.10'
-annotationProcessor 'com.github.wrdlbrnft:simple-json-processor:0.1.0.10'
+compile 'com.github.wrdlbrnft:simple-json:0.2.0.2'
+annotationProcessor 'com.github.wrdlbrnft:simple-json-processor:0.2.0.2'
 ```
-
-If you are not using Jack you can use the android-apt Gradle plugin instead of using the `annotationProcessor` configuration 
-to add the annotation processor of SimpleJson to your module. 
 
 # Basic Usage
 
@@ -198,17 +194,4 @@ Collections like `List` or `Set` are represented as array in JSON. Child entitie
     }
   ]
 }
-```
-
-# Retrofit2
-
-If you are using Retrofit2 to make your API calls then SimpleJson will automatically generate a 
-`SimpleJsonConverterFactory` for you which enables Retrofit2 to seamlessly work with your SimpleJson entities.
-You can add the `SimpleJsonConverterFactory` when you create your `Retrofit` instance like this:
-
-```java
-Retrofit retrofit = new Retrofit.Builder()
-    .baseUrl("https://your.backend.com")
-    .addConverterFactory(new SimpleJsonConverterFactory())
-    .build();
 ```
