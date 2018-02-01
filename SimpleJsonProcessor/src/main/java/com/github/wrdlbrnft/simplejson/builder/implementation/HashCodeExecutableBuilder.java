@@ -47,15 +47,21 @@ class HashCodeExecutableBuilder extends ExecutableBuilder {
 
         for (int i = 0, count = mMappedValues.size(); i < count; i++) {
             final MappedValue mappedValue = mMappedValues.get(i);
-
+            final HashCodeStatement statement = createHashCodeStatement(mappedValue);
+            final CodeElement setup = statement.getSetup();
+            
+            if(setup != null) {
+                block.append(setup).newLine();
+            }
+            
             if (i > 0) {
                 block.set(varResult, Operators.operate(
                         Operators.operate(Values.of(31), "*", varResult),
                         "+",
-                        createHashCodeStatement(mappedValue)
+                        statement.getValue()
                 ));
             } else {
-                block.set(varResult, createHashCodeStatement(mappedValue));
+                block.set(varResult, statement.getValue());
             }
             block.append(";").newLine();
         }
@@ -63,42 +69,48 @@ class HashCodeExecutableBuilder extends ExecutableBuilder {
         block.append("return ").append(varResult).append(";");
     }
 
-    private CodeElement createHashCodeStatement(MappedValue mappedValue) {
+    private HashCodeStatement createHashCodeStatement(MappedValue mappedValue) {
         final Field field = mappedValue.getField();
         final TypeMirror type = mappedValue.getBaseType();
 
         if (Utils.isSameType(type, int.class)) {
-            return field;
+            return new HashCodeStatement(null, field);
         }
 
         if (Utils.isSameType(type, long.class)) {
-            return new LongToIntegerHashConversion(field);
+            return new HashCodeStatement(null, new LongToIntegerHashConversion(field));
         }
 
         if (Utils.isSameType(type, double.class)) {
-            return new BlockWriter() {
+            final Variable temp = Variables.of(Types.Primitives.LONG, Modifier.FINAL);
+            final CodeElement setup = new BlockWriter() {
                 @Override
                 protected void write(Block block) {
-                    final Variable temp = Variables.of(Types.Primitives.LONG, Modifier.FINAL);
-                    block.set(temp, METHOD_DOUBLE_TO_LONG_BITS.callOnTarget(Types.Boxed.DOUBLE, field)).append(";").newLine();
+                    block.set(temp, METHOD_DOUBLE_TO_LONG_BITS.callOnTarget(Types.Boxed.DOUBLE, field)).append(";");
+                }
+            };
+            final CodeElement value = new BlockWriter() {
+                @Override
+                protected void write(Block block) {
                     block.append(new LongToIntegerHashConversion(temp));
                 }
             };
+            return new HashCodeValue(setup, value);
         }
 
         if (Utils.isSameType(type, boolean.class)) {
-            return new BracedStatement(new TernaryIf.Builder()
+            return new HashCodeStatement(null, new BracedStatement(new TernaryIf.Builder()
                     .setComparison(field)
                     .setTrueBlock(Values.of(1))
                     .setFalseBlock(Values.of(0))
-                    .build());
+                    .build()));
         }
 
-        return new BracedStatement(new TernaryIf.Builder()
+        return new HashCodeStatement(null, new BracedStatement(new TernaryIf.Builder()
                 .setComparison(Operators.operate(field, "!=", Values.ofNull()))
                 .setTrueBlock(Methods.HASH_CODE.callOnTarget(field))
                 .setFalseBlock(Values.of(0))
-                .build());
+                .build()));
     }
 
     private static class LongToIntegerHashConversion extends BlockWriter {
@@ -128,6 +140,25 @@ class HashCodeExecutableBuilder extends ExecutableBuilder {
         @Override
         protected void write(Block block) {
             block.append("(").append(mStatement).append(")");
+        }
+    }
+    
+    private static class HashCodeStatement {
+    
+        private final CodeElement mSetup;
+        private final CodeElement mHashCodeValue:
+        
+        public HashCodeStatement(CodeElement setup, CodeElement hashCodeValue) {
+            mSetup = setup;
+            mHashCodeValue = hashCodeValue;
+        }
+        
+        public CodeElement getSetup() {
+            return mSetup;
+        }
+        
+        public CodeElement getValue() {
+            return mHashCodeValue;
         }
     }
 
