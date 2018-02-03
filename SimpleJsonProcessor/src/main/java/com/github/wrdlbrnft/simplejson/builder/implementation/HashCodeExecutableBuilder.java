@@ -95,7 +95,7 @@ class HashCodeExecutableBuilder extends ExecutableBuilder {
                     block.append(new LongToIntegerHashConversion(temp));
                 }
             };
-            return new HashCodeValue(setup, value);
+            return new HashCodeStatement(setup, value);
         }
 
         if (Utils.isSameType(type, boolean.class)) {
@@ -146,7 +146,7 @@ class HashCodeExecutableBuilder extends ExecutableBuilder {
     private static class HashCodeStatement {
     
         private final CodeElement mSetup;
-        private final CodeElement mHashCodeValue:
+        private final CodeElement mHashCodeValue;
         
         public HashCodeStatement(CodeElement setup, CodeElement hashCodeValue) {
             mSetup = setup;
