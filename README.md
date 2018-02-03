@@ -8,7 +8,7 @@ The next generation JSON Parser for Android!
 * **Easy to use and quick to setup**: Getting SimpleJson to work requires no setup and after adding only a few annotations on your models you are good to go.
 * **Works with ProGuard**: With SimpleJson you don't need to mess around with ProGuard rules and worry about keeping the right classes. Every bit of your code can be obfuscated without worrying about a thing.
 
-# How to add it to your project
+## How to add it to your project
 
 Just add is these two dependencies to your build.gradle file:
 
@@ -17,7 +17,7 @@ compile 'com.github.wrdlbrnft:simple-json:0.2.0.2'
 annotationProcessor 'com.github.wrdlbrnft:simple-json-processor:0.2.0.2'
 ```
 
-# Basic Usage
+## Basic Usage
 
 SimpleJson works exclusively with interfaces. It generates an implementation of those interface for you as well as a parser which translates it into json. 
 To get started just annotate your interface with `@JsonEntity` and use `@FieldName` to tell SimpleJson how to map elements in the json to the getters.
@@ -90,7 +90,7 @@ Each factory class also has a `create()` method which can be used to create new 
 ExampleModel model = ExampleModels.create(27L, "text");
 ```
 
-# Optional fields
+## Optional fields
 
 If there is an optional element in a JSON you want to parse just annotate the corrosponding getter with `@Optional`. If the element is missing from the json then it will be parsed as `null`. If an element is not annotated with `@Optional` and it is missing from the JSON than a `SimpleJsonException` will be thrown! 
 
@@ -112,13 +112,13 @@ public interface ExampleModel {
 
 **Note:** Methods annotated with `@Optional` cannot return primitive values! Use boxed values instead.
 
-# Date Parsing and Formatting
+## Date Parsing and Formatting
 
 Dates can be represented in json as a string or unix timestamp. SimpleJson offers the ability to do both with two different annotations.
 
 **Note:** If you don't specify otherwise dates will be represented as unix timestamp in milliseconds.
  
-## Representing Dates as a String using a Date Pattern
+### Representing Dates as a String using a Date Pattern
 
 You can specify a pattern for dates using the `@DatePattern` annotation:
 
@@ -142,7 +142,7 @@ A json for the `ExampleModel` above would look like this:
 }
 ```
 
-## Representing Dates as a unix time stamp
+### Representing Dates as a unix time stamp
 
 If you want to represent the date as unix time stamp you can use the `@UnixTimeStamp` annotation:
 
@@ -166,7 +166,7 @@ A json for the `ExampleModel` above would look like this:
 }
 ```
 
-# Mapping Enums
+## Mapping Enums
 
 SimpleJson can map Enums from and to JSON for you! To use an enum in SimpleJson just add the `@JsonEnum` annotation. You can then define the mappings of each value with the `@MapTo` annotation. 
 You can also use `@MapDefault` to define default mapping values if no other mapping applies. If no default value is defined then a `SimpleJsonException` will be thrown.
@@ -188,7 +188,7 @@ public enum ExampleEnum {
 
 By annotating the enum like above `VALUE_A` will be mapped to the String `"a"` in the JSON, `VALUE_B` will be mapped to `"b"` and so on. If you parse a JSON and the String `"c"` is encountered in an element which should be parsed as `ExampleEnum` then it will be mapped to `VALUE_C`, if `"b"` is encountered it will be mapped to `VALUE_B` and so on.
 
-# Collections and Child Entities
+## Collections and Child Entities
 
 You can also work with complex models and child entities! Consider some like this:
 
