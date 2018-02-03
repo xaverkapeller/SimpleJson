@@ -1,28 +1,28 @@
-package com.github.wrdlbrnft.simplejson.parsers.extensions;
+package com.github.wrdlbrnft.simplejson.parsers.base;
 
 import com.github.wrdlbrnft.simplejson.parsers.ParserExtension;
+import com.github.wrdlbrnft.simplejson.parsers.base.date.DateFormatter;
 
 import java.util.Calendar;
 import java.util.Date;
 
 /**
- * Created by kapeller on 21/06/16.
+ * Created with Android Studio<br>
+ * User: Xaver<br>
+ * Date: 03/02/2018
  */
+
 public class CalendarParser extends ParserExtension<Date, Calendar> {
 
-    public CalendarParser() {
-        super(new DateParser());
+    public CalendarParser(DateFormatter dateFormatter) {
+        super(new DateParser(dateFormatter));
     }
 
     @Override
     protected Calendar convertUp(Date input) {
-        if (input == null) {
-            return null;
-        }
-
-        final Calendar instance = Calendar.getInstance();
-        instance.setTime(input);
-        return instance;
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTime(input);
+        return calendar;
     }
 
     @Override
@@ -30,7 +30,6 @@ public class CalendarParser extends ParserExtension<Date, Calendar> {
         if (input == null) {
             return null;
         }
-
         return input.getTime();
     }
 }
