@@ -22,6 +22,7 @@ public class SimpleJsonTypes {
     public static final Type INTEGER_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "IntegerParser");
     public static final Type LONG_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "LongParser");
     public static final Type DOUBLE_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "DoubleParser");
+    public static final Type FLOAT_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "FloatParser");
     public static final Type BOOLEAN_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "BooleanParser");
     public static final Type ENTITY_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "EntityParser");
 
