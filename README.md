@@ -233,17 +233,17 @@ Collections like `List` or `Set` are represented as array in JSON. Child entitie
   "children": [
     {
       "text": "some text",
-      "enabled": 1,
+      "enabled": true,
       "value": 23.7
     },
     {
       "text": "some other text",
-      "enabled": 0,
+      "enabled": false,
       "value": 0.0
     },
     {
       "text": "example",
-      "enabled": 1,
+      "enabled": true,
       "value": 1234.5
     }
   ]
