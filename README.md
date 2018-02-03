@@ -81,7 +81,7 @@ Translating an entity into json from an entity or a `Collection` of entities wor
 String json = ExampleModels.toJson(model);
 ...
 List<ExampleModel> models = ...;
-String jsonArray = SimpleJson.toJson(ExampleModel.class, models);
+String jsonArray = ExampleModels.toJson(models);
 ```
 
 Each factory class also has a `create()` method which can be used to create new instances of your entities without you having to implement them:
@@ -112,10 +112,64 @@ public interface ExampleModel {
 
 **Note:** Methods annotated with `@Optional` cannot return primitive values! Use boxed values instead.
 
+# Date Parsing and Formatting
+
+Dates can be represented in json as a string or unix timestamp. SimpleJson offers the ability to do both with two different annotations.
+
+**Note:** If you don't specify otherwise dates will be represented as unix timestamp in milliseconds.
+ 
+## Representing Dates as a String using a Date Pattern
+
+You can specify a pattern for dates using the `@DatePattern` annotation:
+
+```java
+@JsonEntity
+public interface ExampleModel {
+    
+  @DatePattern("dd/MM/yyyy hh:mm:ss ZZZZ")
+  @FieldName("date")
+  Date getDate();
+}
+```
+
+**Note:** The patterns are default Java date patterns - the same you would use in a `SimpleDateFormat` instance.
+ 
+A json for the `ExampleModel` above would look like this:
+
+```json
+{
+  "date": "12/05/1992 12:34:56 +0000"
+}
+```
+
+## Representing Dates as a unix time stamp
+
+If you want to represent the date as unix time stamp you can use the `@UnixTimeStamp` annotation:
+
+```java
+@JsonEntity
+public interface ExampleModel {
+    
+  @UnixTimeStamp(inMilliSeconds = false)
+  @FieldName("date")
+  Date getDate();
+}
+```
+
+The `inMilliSeconds` parameter controls if the unix time stamp is in milliseconds or seconds. If you don't specify the `inMilliSeconds` parameter it defaults to `true`.
+
+A json for the `ExampleModel` above would look like this:
+
+```json
+{
+  "date": 1517700642
+}
+```
+
 # Mapping Enums
 
-SimpleJson can map Enums from and to JSON for you! To use an enum in SimpleJson just add the `@JsonEnum` annotation. You can then define the mappings of each value with the `@MapTo` annotation.
- You can also use `@MapDefault` to define default mapping values if no other mapping applies. If no default value is defined then a `SimpleJsonException` will be thrown.
+SimpleJson can map Enums from and to JSON for you! To use an enum in SimpleJson just add the `@JsonEnum` annotation. You can then define the mappings of each value with the `@MapTo` annotation. 
+You can also use `@MapDefault` to define default mapping values if no other mapping applies. If no default value is defined then a `SimpleJsonException` will be thrown.
 
 ```java
 @JsonEnum
@@ -166,7 +220,7 @@ public interface Child {
 public enum Type {
   @MapTo("a") A,
   @MapTo("b") B,
-  @MapTo("c") C
+  @MapTo("c") C,
   @MapDefault D
 }
 ```
