@@ -51,6 +51,6 @@ public class MethodPairInfo {
         if (getterAnnotationMirror != null) {
             return getterAnnotationMirror;
         }
-        return Utils.getAnnotationValue(mSetter, annotationClassName, fieldName);
+        return Utils.getAnnotationValue(mGetter, annotationClassName, fieldName);
     }
 }

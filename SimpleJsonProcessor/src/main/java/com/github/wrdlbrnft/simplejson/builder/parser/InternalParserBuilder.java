@@ -9,10 +9,10 @@ import com.github.wrdlbrnft.codebuilder.types.Types;
 import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
+import com.github.wrdlbrnft.simplejson.builder.parser.resolver.ElementParserResolver;
 import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
 import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
-import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
 

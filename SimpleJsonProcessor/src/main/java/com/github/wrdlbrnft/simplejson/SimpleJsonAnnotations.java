@@ -7,6 +7,8 @@ public class SimpleJsonAnnotations {
 
     public static final String JSON_ENTITY = "com.github.wrdlbrnft.simplejson.annotations.JsonEntity";
     public static final String JSON_ENUM = "com.github.wrdlbrnft.simplejson.annotations.JsonEnum";
+    public static final String DATE_PATTERN = "com.github.wrdlbrnft.simplejson.annotations.DatePattern";
+    public static final String UNIX_TIME_STAMP = "com.github.wrdlbrnft.simplejson.annotations.UnixTimeStamp";
     public static final String FIELD_NAME = "com.github.wrdlbrnft.simplejson.annotations.FieldName";
     public static final String OPTIONAL = "com.github.wrdlbrnft.simplejson.annotations.Optional";
     public static final String MAP_TO = "com.github.wrdlbrnft.simplejson.annotations.MapTo";

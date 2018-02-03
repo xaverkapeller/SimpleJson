@@ -17,14 +17,17 @@ public class SimpleJsonTypes {
     public static final Type ENUM_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers", "EnumParser");
     public static final Type BASE_ENUM_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers", "BaseEnumParser");
     public static final Type STRING_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "StringParser");
-    public static final Type DATE_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.extensions", "DateParser");
-    public static final Type CALENDAR_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.extensions", "CalendarParser");
+    public static final Type DATE_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "DateParser");
+    public static final Type CALENDAR_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "CalendarParser");
     public static final Type INTEGER_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "IntegerParser");
     public static final Type LONG_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "LongParser");
     public static final Type DOUBLE_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "DoubleParser");
     public static final Type FLOAT_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "FloatParser");
     public static final Type BOOLEAN_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "BooleanParser");
     public static final Type ENTITY_PARSER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base", "EntityParser");
+
+    public static final Type PATTERN_DATE_FORMATTER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base.date", "PatternDateFormatter");
+    public static final Type UNIX_TIME_STAMP_DATE_FORMATTER = Types.of("com.github.wrdlbrnft.simplejson.parsers.base.date", "UnixTimeStampDateFormatter");
 
     public static final Type SIMPLE_JSON = Types.of("com.github.wrdlbrnft.simplejson", "SimpleJson");
     public static final Method SIMPLE_JSON_REGISTER_PARSER = Methods.stub("registerParser");

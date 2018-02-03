@@ -17,7 +17,7 @@ public class FloatParser implements ElementParser<Float> {
         try {
             return (float) object.getDouble(key);
         } catch (JSONException e) {
-            throw new SimpleJsonException("Failed to get Double value with key \"" + key + "\" from json: " + object, e);
+            throw new SimpleJsonException("Failed to get float value with key \"" + key + "\" from json: " + object, e);
         }
     }
 
@@ -26,7 +26,7 @@ public class FloatParser implements ElementParser<Float> {
         try {
             object.put(key, value);
         } catch (JSONException e) {
-            throw new SimpleJsonException("Failed to add Double value " + value + " with key \"" + key + "\" to json: " + object, e);
+            throw new SimpleJsonException("Failed to add float value " + value + " with key \"" + key + "\" to json: " + object, e);
         }
     }
 
@@ -35,7 +35,7 @@ public class FloatParser implements ElementParser<Float> {
         try {
             return (float) array.getDouble(index);
         } catch (JSONException e) {
-            throw new SimpleJsonException("Failed to get Double value with index " + index + " from json array: " + array, e);
+            throw new SimpleJsonException("Failed to get float value with index " + index + " from json array: " + array, e);
         }
     }
 

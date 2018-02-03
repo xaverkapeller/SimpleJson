@@ -10,9 +10,8 @@ import com.github.wrdlbrnft.codebuilder.variables.Variable;
 import com.github.wrdlbrnft.codebuilder.variables.Variables;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejson.builder.implementation.MethodPairInfo;
+import com.github.wrdlbrnft.simplejson.builder.parser.resolver.ElementParserResolver;
 import com.github.wrdlbrnft.simplejson.models.MappedValue;
-
-import java.io.IOException;
 
 import javax.lang.model.type.TypeMirror;
 
