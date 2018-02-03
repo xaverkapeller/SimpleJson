@@ -54,10 +54,6 @@ public class SimpleJsonProcessor extends AbstractProcessor {
         parserCollection.registerCustomParsers(customParserMap);
 
         tryHandleAnnotations(annotations, roundEnv);
-
-//        if (roundEnv.processingOver()) {
-//        mRetrofitConverterBuilder.build(mParserCollection);
-//        }
     }
 
     private TypeElement getTypeElement(String charSequence) {
