@@ -79,6 +79,9 @@ class EqualsExecutableBuilder extends ExecutableBuilder {
             } else if (Utils.isSameType(mappedValue.getBaseType(), double.class)) {
                 final CodeElement doubleEqualsComparison = createDoubleEqualsComparison(otherInstanceField, field);
                 block.append(doubleEqualsComparison).newLine();
+            } else if (Utils.isSameType(mappedValue.getBaseType(), float.class)) {
+                final CodeElement doubleEqualsComparison = createFloatEqualsComparison(otherInstanceField, field);
+                block.append(doubleEqualsComparison).newLine();
             } else {
                 final CodeElement objectEqualsComparison = createObjectEqualsComparison(otherInstanceField, field);
                 block.append(objectEqualsComparison).newLine();
@@ -96,6 +99,13 @@ class EqualsExecutableBuilder extends ExecutableBuilder {
     private CodeElement createDoubleEqualsComparison(CodeElement otherInstanceField, Field field) {
         final If.Builder builder = new If.Builder();
         final CodeElement doubleCompareCall = METHOD_COMPARE.callOnTarget(Types.Boxed.DOUBLE, otherInstanceField, field);
+        builder.add(Operators.operate(doubleCompareCall, "!=", Values.of(0)), new ReturnStatement(Values.of(false)));
+        return builder.build();
+    }
+
+    private CodeElement createFloatEqualsComparison(CodeElement otherInstanceField, Field field) {
+        final If.Builder builder = new If.Builder();
+        final CodeElement doubleCompareCall = METHOD_COMPARE.callOnTarget(Types.Boxed.FLOAT, otherInstanceField, field);
         builder.add(Operators.operate(doubleCompareCall, "!=", Values.of(0)), new ReturnStatement(Values.of(false)));
         return builder.build();
     }

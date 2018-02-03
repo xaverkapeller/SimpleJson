@@ -28,6 +28,7 @@ import javax.lang.model.type.TypeMirror;
 class HashCodeExecutableBuilder extends ExecutableBuilder {
 
     private static final Method METHOD_DOUBLE_TO_LONG_BITS = Methods.stub("doubleToLongBits");
+    private static final Method METHOD_FLOAT_TO_INT_BITS = Methods.stub("floatToIntBits");
 
     private final List<MappedValue> mMappedValues;
 
@@ -98,6 +99,14 @@ class HashCodeExecutableBuilder extends ExecutableBuilder {
             return new HashCodeStatement(setup, value);
         }
 
+        if (Utils.isSameType(type, float.class)) {
+            return new HashCodeStatement(null, new BracedStatement(new TernaryIf.Builder()
+                    .setComparison(Operators.operate(field, "!=", new Block().append("+0.0f")))
+                    .setTrueBlock(METHOD_FLOAT_TO_INT_BITS.callOnTarget(Types.Boxed.FLOAT, field))
+                    .setFalseBlock(Values.of(0))
+                    .build()));
+        }
+
         if (Utils.isSameType(type, boolean.class)) {
             return new HashCodeStatement(null, new BracedStatement(new TernaryIf.Builder()
                     .setComparison(field)
@@ -159,30 +168,6 @@ class HashCodeExecutableBuilder extends ExecutableBuilder {
         
         public CodeElement getValue() {
             return mHashCodeValue;
-        }
-    }
-
-    private class Test {
-
-        private String aa;
-        private String a;
-        private int b;
-        private long c;
-        private double e;
-        private boolean f;
-
-        @Override
-        public int hashCode() {
-            int result;
-            long temp;
-            result = aa != null ? aa.hashCode() : 0;
-            result = 31 * result + (a != null ? a.hashCode() : 0);
-            result = 31 * result + b;
-            result = 31 * result + (int) (c ^ (c >>> 32));
-            temp = Double.doubleToLongBits(e);
-            result = 31 * result + (int) (temp ^ (temp >>> 32));
-            result = 31 * result + (f ? 1 : 0);
-            return result;
         }
     }
 }

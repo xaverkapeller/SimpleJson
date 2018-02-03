@@ -68,6 +68,11 @@ class ElementParserResolver {
                     Types.generic(SimpleJsonTypes.ELEMENT_PARSER, Types.Boxed.INTEGER),
                     SimpleJsonTypes.INTEGER_PARSER
             );
+        } else if (Utils.isSameType(type, float.class) || Utils.isSameType(type, Float.class)) {
+            field = createElementParserField(
+                    Types.generic(SimpleJsonTypes.ELEMENT_PARSER, Types.Boxed.FLOAT),
+                    SimpleJsonTypes.FLOAT_PARSER
+            );
         } else if (Utils.isSameType(type, double.class) || Utils.isSameType(type, Double.class)) {
             field = createElementParserField(
                     Types.generic(SimpleJsonTypes.ELEMENT_PARSER, Types.Boxed.DOUBLE),
