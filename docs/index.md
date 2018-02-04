@@ -4,6 +4,8 @@
 * **Easy to use and quick to setup**: Getting SimpleJson to work requires no setup and after adding only a few annotations on your models you are good to go.
 * **Works with ProGuard**: With SimpleJson you don't need to mess around with ProGuard rules and worry about keeping the right classes. Every bit of your code can be obfuscated without worrying about a thing.
 
+[![Build Status](https://travis-ci.org/Wrdlbrnft/SimpleJson.svg?branch=master)](https://travis-ci.org/Wrdlbrnft/SimpleJson)
+
 ## How to add it to your project
 
 Just add is these two dependencies to your build.gradle file:
