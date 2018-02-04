@@ -140,6 +140,9 @@ public class ImplementationBuilder {
             valueType = MappedValue.ValueType.VALUE;
             itemType = baseType;
             isParentType = Utils.isSameType(mProcessingEnvironment, itemType, parent.asType());
+            if (isParentType && !Utils.hasAnnotation(getter, SimpleJsonAnnotations.OPTIONAL)) {
+                mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Recursive fields have to be annotated with @Optional! This avoid infinite loops and errors at runtime.", getter);
+            }
             resultingType = Types.of(itemType);
         }
 
