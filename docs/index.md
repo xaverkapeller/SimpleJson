@@ -11,7 +11,7 @@
 Just add is these two dependencies to your build.gradle file:
 
 ```groovy
-compile 'com.github.wrdlbrnft:simple-json:0.3.0.32'
+implementation 'com.github.wrdlbrnft:simple-json:0.3.0.32'
 annotationProcessor 'com.github.wrdlbrnft:simple-json-processor:0.3.0.32'
 ```
 
