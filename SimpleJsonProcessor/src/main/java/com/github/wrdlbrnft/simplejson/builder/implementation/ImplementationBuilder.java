@@ -4,7 +4,6 @@ import com.github.wrdlbrnft.codebuilder.annotations.Annotations;
 import com.github.wrdlbrnft.codebuilder.code.Block;
 import com.github.wrdlbrnft.codebuilder.code.BlockWriter;
 import com.github.wrdlbrnft.codebuilder.code.CodeElement;
-import com.github.wrdlbrnft.codebuilder.code.SourceFile;
 import com.github.wrdlbrnft.codebuilder.executables.Constructor;
 import com.github.wrdlbrnft.codebuilder.executables.ExecutableBuilder;
 import com.github.wrdlbrnft.codebuilder.executables.Method;
@@ -19,7 +18,6 @@ import com.github.wrdlbrnft.simplejson.SimpleJsonAnnotations;
 import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
 import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -63,7 +61,7 @@ public class ImplementationBuilder {
         final List<MappedValue> mappedValues = new ArrayList<>();
         final List<MethodPairInfo> infos = mAnalyzer.analyze(model);
         for (MethodPairInfo info : infos) {
-            mappedValues.add(createMappedValueWrapper(info));
+            mappedValues.add(createMappedValueWrapper(model, info));
         }
 
         final Constructor constructor = new Constructor.Builder()
@@ -96,7 +94,7 @@ public class ImplementationBuilder {
         return new ImplementationResult(implementation, model, mappedValues);
     }
 
-    private MappedValue createMappedValueWrapper(MethodPairInfo info) {
+    private MappedValue createMappedValueWrapper(TypeElement parent, MethodPairInfo info) {
 
         final ExecutableElement getter = info.getGetter();
         final ExecutableElement setter = info.getSetter();
@@ -105,20 +103,24 @@ public class ImplementationBuilder {
         final Type resultingType;
         final TypeMirror itemType;
         final MappedValue.ValueType valueType;
+        final boolean isParentType;
         if (baseType.getKind() == TypeKind.ARRAY) {
             mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Arrays are not supported yet as return types!", getter);
             itemType = null;
             valueType = null;
+            isParentType = false;
             resultingType = Types.Boxed.VOID;
         } else if (Utils.isSubTypeOf(mProcessingEnvironment, baseType, mTypeList)) {
             valueType = MappedValue.ValueType.LIST;
             final List<TypeMirror> typeParameters = Utils.getTypeParameters(baseType);
             if (!typeParameters.isEmpty()) {
                 itemType = typeParameters.get(0);
+                isParentType = Utils.isSameType(mProcessingEnvironment, itemType, parent.asType());
                 resultingType = Types.generic(Types.LIST, Types.of(itemType));
             } else {
                 mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Type Parameter Wildcards on Lists are not supported! You need to explicitly state the type of the elements in the returned List!!1", getter);
                 itemType = null;
+                isParentType = false;
                 resultingType = Types.LIST;
             }
         } else if (Utils.isSubTypeOf(mProcessingEnvironment, baseType, mTypeSet)) {
@@ -126,15 +128,21 @@ public class ImplementationBuilder {
             final List<TypeMirror> typeParameters = Utils.getTypeParameters(baseType);
             if (!typeParameters.isEmpty()) {
                 itemType = typeParameters.get(0);
+                isParentType = Utils.isSameType(mProcessingEnvironment, itemType, parent.asType());
                 resultingType = Types.generic(Types.SET, Types.of(itemType));
             } else {
                 mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Type Parameter Wildcards on Sets are not supported! You need to explicitly state the type of the elements in the returned List!!1", getter);
                 itemType = null;
+                isParentType = false;
                 resultingType = Types.SET;
             }
         } else {
             valueType = MappedValue.ValueType.VALUE;
             itemType = baseType;
+            isParentType = Utils.isSameType(mProcessingEnvironment, itemType, parent.asType());
+            if (isParentType && !Utils.hasAnnotation(getter, SimpleJsonAnnotations.OPTIONAL)) {
+                mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Recursive fields have to be annotated with @Optional! This avoid infinite loops and errors at runtime.", getter);
+            }
             resultingType = Types.of(itemType);
         }
 
@@ -149,7 +157,6 @@ public class ImplementationBuilder {
             mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "You cannot use @Optional when the return type of the method is a primitive! Use Boxed return types instead. (e.g. int -> Integer)", getter);
         }
 
-
         if (setter != null) {
             final Method setterMethod = createSetterImplementation(info, resultingType, field);
             if (setterMethod != null) {
@@ -162,7 +169,7 @@ public class ImplementationBuilder {
             mBuilder.addMethod(getterMethod);
         }
 
-        return new MappedValue(info.getFieldName(), baseType, itemType, optional, valueType, info, field);
+        return new MappedValue(info.getFieldName(), baseType, itemType, optional, valueType, isParentType, info, field);
     }
 
     private Method createGetterImplementation(MethodPairInfo info, Type resultingType, final Field field) {

@@ -10,6 +10,7 @@ import com.github.wrdlbrnft.simplejson.builder.factories.enums.EnumFactoryBuilde
 import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationBuilder;
 import com.github.wrdlbrnft.simplejson.builder.parser.InternalParserBuilder;
 import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
+import com.github.wrdlbrnft.simplejson.utils.ImplementationStub;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -160,8 +161,10 @@ public class ParserBuilder {
 
         private void createImplementationAndParser(TypeElement element, String qualifiedName) {
             final ImplementationResult result = mImplementationBuilder.build(element);
+            final ImplementationStub stub = new ImplementationStub();
+            mClassNameToEntityParserMap.put(qualifiedName, stub);
             final Implementation parserType = mInternalParserBuilder.build(element, result);
-            mClassNameToEntityParserMap.put(qualifiedName, parserType);
+            stub.setImplementation(parserType);
             mParent.addNestedImplementation(result.getImplType());
             mParent.addNestedImplementation(parserType);
         }

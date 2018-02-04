@@ -1,21 +1,18 @@
 package com.github.wrdlbrnft.simplejson.builder.builder;
 
 import com.github.wrdlbrnft.codebuilder.code.Block;
-import com.github.wrdlbrnft.codebuilder.code.CodeBuilder;
 import com.github.wrdlbrnft.codebuilder.code.CodeElement;
-import com.github.wrdlbrnft.codebuilder.code.NameGenerator;
-import com.github.wrdlbrnft.codebuilder.code.Resolver;
 import com.github.wrdlbrnft.codebuilder.elements.values.Values;
 import com.github.wrdlbrnft.codebuilder.executables.ExecutableBuilder;
 import com.github.wrdlbrnft.codebuilder.executables.Method;
 import com.github.wrdlbrnft.codebuilder.implementations.Implementation;
-import com.github.wrdlbrnft.codebuilder.types.Type;
 import com.github.wrdlbrnft.codebuilder.types.Types;
 import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.codebuilder.variables.Variable;
 import com.github.wrdlbrnft.simplejson.builder.implementation.MethodPairInfo;
 import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
 import com.github.wrdlbrnft.simplejson.models.MappedValue;
+import com.github.wrdlbrnft.simplejson.utils.TypeStub;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,37 +114,4 @@ public class BuilderBuilder {
         return name;
     }
 
-    private static class TypeStub implements Type {
-
-        private Type mType;
-
-        public void setType(Type type) {
-            mType = type;
-        }
-
-        @Override
-        public CodeElement newInstance(CodeElement... codeElements) {
-            return mType.newInstance(codeElements);
-        }
-
-        @Override
-        public CodeElement classObject() {
-            return mType.classObject();
-        }
-
-        @Override
-        public void prepare() {
-            mType.prepare();
-        }
-
-        @Override
-        public void resolve(Resolver resolver, NameGenerator nameGenerator) {
-            mType.resolve(resolver, nameGenerator);
-        }
-
-        @Override
-        public void write(CodeBuilder codeBuilder) {
-            mType.write(codeBuilder);
-        }
-    }
 }
