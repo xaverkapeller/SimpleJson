@@ -9,6 +9,7 @@ import com.github.wrdlbrnft.simplejson.builder.implementation.MethodPairInfo;
 import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.lang.model.type.TypeMirror;
@@ -17,6 +18,14 @@ import javax.lang.model.type.TypeMirror;
  * Created by kapeller on 09/07/15.
  */
 class FactoryMethodBuilder extends ExecutableBuilder {
+
+    private static final List<String> PARAMETER_NAME_BLACK_LIST = Arrays.asList(
+            "int",
+            "long",
+            "float",
+            "double",
+            "boolean"
+    );
 
     private final List<MappedValue> mMappedValues;
     private final Type mImplementationType;
@@ -55,6 +64,10 @@ class FactoryMethodBuilder extends ExecutableBuilder {
     }
 
     private String formatAsParameterName(String groupName) {
-        return groupName.substring(0, 1).toLowerCase() + groupName.substring(1);
+        final String name = groupName.substring(0, 1).toLowerCase() + groupName.substring(1);
+        if (PARAMETER_NAME_BLACK_LIST.contains(name)) {
+            return "_" + name;
+        }
+        return name;
     }
 }
