@@ -90,6 +90,15 @@ Each factory class also has a `create()` method which can be used to create new 
 ExampleModel model = ExampleModels.create(27L, "text");
 ```
 
+Alternatively you can create instances of your models using the `Builder` classes which are also generated along with the factory classes:
+
+```java
+ExampleModel model = new ExampleModels.Builder()
+        .setId(27L)
+        .setText("text")
+        .build();
+```
+
 ## Optional fields
 
 If there is an optional element in a JSON you want to parse just annotate the corrosponding getter with `@Optional`. If the element is missing from the json then it will be parsed as `null`. If an element is not annotated with `@Optional` and it is missing from the JSON than a `SimpleJsonException` will be thrown! 
