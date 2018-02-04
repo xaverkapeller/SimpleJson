@@ -6,7 +6,7 @@ targetCompatibility = 1.8
 sourceCompatibility = 1.8
 
 dependencies {
-    compile 'com.github.wrdlbrnft:code-builder:0.2.0.14'
+    compile 'com.github.wrdlbrnft:code-builder:0.3.0.15'
 }
 
 final bintrayUser = System.getenv('BINTRAY_USER') ?: ''
