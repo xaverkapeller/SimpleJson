@@ -13,6 +13,7 @@ import com.github.wrdlbrnft.simplejson.builder.implementation.MethodPairInfo;
 import com.github.wrdlbrnft.simplejson.builder.parser.resolver.ElementParserResolver;
 import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
+import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeMirror;
 
 /**
@@ -50,7 +51,7 @@ class EntityFormater {
         final MethodPairInfo info = mappedValue.getMethodPairInfo();
         final TypeMirror type = mappedValue.getItemType();
         final Field parser = mParserResolver.getElementParserField(mappedValue);
-        final Variable varJsonArray = Variables.of(SimpleJsonTypes.JSON_ARRAY);
+        final Variable varJsonArray = Variables.of(SimpleJsonTypes.JSON_ARRAY, Modifier.FINAL);
         block.set(varJsonArray, SimpleJsonTypes.JSON_ARRAY.newInstance()).append(";").newLine();
 
         block.append(new Foreach.Builder()

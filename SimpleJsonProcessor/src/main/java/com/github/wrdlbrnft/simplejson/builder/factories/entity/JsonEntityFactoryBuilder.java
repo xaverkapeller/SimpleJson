@@ -13,13 +13,13 @@ import com.github.wrdlbrnft.codebuilder.variables.Variables;
 import com.github.wrdlbrnft.simplejson.SimpleJsonAnnotations;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
+import com.github.wrdlbrnft.simplejson.builder.builder.BuilderBuilder;
 import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationBuilder;
 import com.github.wrdlbrnft.simplejson.builder.parser.InternalParserBuilder;
 import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
 import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -35,11 +35,13 @@ public class JsonEntityFactoryBuilder {
     private final ParserBuilder.BuildCache mBuildCache;
     private final ImplementationBuilder mImplementationBuilder;
     private final InternalParserBuilder mInternalParserBuilder;
+    private final BuilderBuilder mBuilderBuilder;
 
     public JsonEntityFactoryBuilder(ParserBuilder.BuildCache buildCache, ImplementationBuilder implementationBuilder, InternalParserBuilder internalParserBuilder) {
         mBuildCache = buildCache;
         mImplementationBuilder = implementationBuilder;
         mInternalParserBuilder = internalParserBuilder;
+        mBuilderBuilder = new BuilderBuilder();
     }
 
     public Implementation build(TypeElement interfaceElement) {
@@ -49,6 +51,10 @@ public class JsonEntityFactoryBuilder {
 
         final ImplementationResult result = mImplementationBuilder.build(interfaceElement);
         builder.addNestedImplementation(result.getImplType());
+
+        final Implementation builderImplementation = mBuilderBuilder.build(result);
+        builder.addNestedImplementation(builderImplementation);
+
         final Implementation parserType = mInternalParserBuilder.build(interfaceElement, result);
         builder.addNestedImplementation(parserType);
 
@@ -182,9 +188,12 @@ public class JsonEntityFactoryBuilder {
             }
         }
 
+
         final String typeName = Utils.getClassName(element);
         if (Character.toLowerCase(typeName.charAt(typeName.length() - 1)) == 's') {
             return typeName + "Factory";
+        } else if (Character.toLowerCase(typeName.charAt(typeName.length() - 1)) == 'y') {
+            return typeName.substring(0, typeName.length() - 1) + "ies";
         }
         return typeName + "s";
     }
