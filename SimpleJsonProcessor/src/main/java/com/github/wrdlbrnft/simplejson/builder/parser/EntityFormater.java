@@ -1,6 +1,7 @@
 package com.github.wrdlbrnft.simplejson.builder.parser;
 
 import com.github.wrdlbrnft.codebuilder.code.Block;
+import com.github.wrdlbrnft.codebuilder.code.CodeElement;
 import com.github.wrdlbrnft.codebuilder.elements.forloop.item.Foreach;
 import com.github.wrdlbrnft.codebuilder.elements.values.Values;
 import com.github.wrdlbrnft.codebuilder.executables.Methods;
@@ -29,8 +30,7 @@ class EntityFormater {
 
     public void formatValue(Block block, MappedValue mappedValue, Variable varJsonObject, Variable varEntity) {
         final MethodPairInfo info = mappedValue.getMethodPairInfo();
-        final TypeMirror type = mappedValue.getItemType();
-        final Field parser = mParserResolver.getElementParserField(mappedValue);
+        final CodeElement parser = mParserResolver.getElementParserField(mappedValue);
 
         block.append(parser).append(".toJsonObject(")
                 .append(varJsonObject).append(", ")
@@ -50,7 +50,7 @@ class EntityFormater {
     private void formatCollection(Block block, final MappedValue mappedValue, Variable varJsonObject, final Variable varEntity) {
         final MethodPairInfo info = mappedValue.getMethodPairInfo();
         final TypeMirror type = mappedValue.getItemType();
-        final Field parser = mParserResolver.getElementParserField(mappedValue);
+        final CodeElement parser = mParserResolver.getElementParserField(mappedValue);
         final Variable varJsonArray = Variables.of(SimpleJsonTypes.JSON_ARRAY, Modifier.FINAL);
         block.set(varJsonArray, SimpleJsonTypes.JSON_ARRAY.newInstance()).append(";").newLine();
 

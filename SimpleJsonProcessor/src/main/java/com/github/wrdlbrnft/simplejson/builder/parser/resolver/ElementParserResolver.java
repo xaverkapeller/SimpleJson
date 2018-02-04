@@ -1,5 +1,7 @@
 package com.github.wrdlbrnft.simplejson.builder.parser.resolver;
 
+import com.github.wrdlbrnft.codebuilder.code.CodeElement;
+import com.github.wrdlbrnft.codebuilder.elements.values.Values;
 import com.github.wrdlbrnft.codebuilder.types.Type;
 import com.github.wrdlbrnft.codebuilder.types.Types;
 import com.github.wrdlbrnft.codebuilder.variables.Field;
@@ -61,9 +63,13 @@ public class ElementParserResolver {
         );
     }
 
-    public Field getElementParserField(MappedValue mappedValue) {
+    public CodeElement getElementParserField(MappedValue mappedValue) {
         final TypeMirror type = mappedValue.getItemType();
         final TypeElement element = (TypeElement) mProcessingEnvironment.getTypeUtils().asElement(type);
+
+        if (mappedValue.isParentReference()) {
+            return Values.ofThis();
+        }
 
         return mEntries.stream()
                 .filter(entry -> entry.matches(mappedValue))

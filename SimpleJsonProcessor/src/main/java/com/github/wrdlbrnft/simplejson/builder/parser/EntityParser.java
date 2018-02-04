@@ -32,7 +32,7 @@ class EntityParser {
     public Variable parseValue(Block block, MappedValue mappedValue, final Variable varJsonObject) {
         final CodeElement key = Values.of(mappedValue.getFieldName());
         final TypeMirror type = mappedValue.getItemType();
-        final Field parser = mElementParserResolver.getElementParserField(mappedValue);
+        final CodeElement parser = mElementParserResolver.getElementParserField(mappedValue);
         final Variable variable = Variables.of(Types.of(type), Modifier.FINAL);
 
         if (mappedValue.isOptional()) {
@@ -59,7 +59,7 @@ class EntityParser {
 
     public Variable parseList(Block block, final MappedValue mappedValue, final Variable varJsonObject) {
         final TypeMirror itemType = mappedValue.getItemType();
-        final Field parser = mElementParserResolver.getElementParserField(mappedValue);
+        final CodeElement parser = mElementParserResolver.getElementParserField(mappedValue);
         final Variable varList = Variables.of(Types.generic(Types.LIST, Types.of(itemType)), Modifier.FINAL);
         block.set(varList, Types.generic(Types.ARRAY_LIST, Types.of(itemType)).newInstance()).append(";").newLine();
 
@@ -71,7 +71,7 @@ class EntityParser {
 
     public Variable parseSet(Block block, final MappedValue mappedValue, final Variable varJsonObject) {
         final TypeMirror itemType = mappedValue.getItemType();
-        final Field parser = mElementParserResolver.getElementParserField(mappedValue);
+        final CodeElement parser = mElementParserResolver.getElementParserField(mappedValue);
         final Variable varSet = Variables.of(Types.generic(Types.SET, Types.of(itemType)), Modifier.FINAL);
         block.set(varSet, Types.generic(Types.HASH_SET, Types.of(itemType)).newInstance()).append(";").newLine();
 
@@ -80,7 +80,7 @@ class EntityParser {
         return varSet;
     }
 
-    private void handleOptionalAnnotation(Block block, final MappedValue mappedValue, final Variable varJsonObject, final Field parser, final Variable varSet) {
+    private void handleOptionalAnnotation(Block block, final MappedValue mappedValue, final Variable varJsonObject, final CodeElement parser, final Variable varSet) {
         if (mappedValue.isOptional()) {
             final Block trueBlock = new Block();
             parseCollection(trueBlock, varSet, varJsonObject, mappedValue.getFieldName(), parser);
@@ -94,7 +94,7 @@ class EntityParser {
         }
     }
 
-    private void parseCollection(Block block, final Variable varCollection, Variable varJsonObject, String key, final Field parser) {
+    private void parseCollection(Block block, final Variable varCollection, Variable varJsonObject, String key, final CodeElement parser) {
         final Variable varJsonArray = Variables.of(SimpleJsonTypes.JSON_ARRAY, Modifier.FINAL);
 
         block.set(varJsonArray, new Block().append(varJsonObject).append(".getJSONArray(").append(Values.of(key)).append(")")).append(";").newLine();
