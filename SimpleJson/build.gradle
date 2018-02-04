@@ -30,6 +30,9 @@ android {
 }
 
 dependencies {
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.json:json:20140107'
+    testAnnotationProcessor project(path: ':SimpleJsonProcessor')
 }
 
 final bintrayUser = System.getenv('BINTRAY_USER') ?: ''
