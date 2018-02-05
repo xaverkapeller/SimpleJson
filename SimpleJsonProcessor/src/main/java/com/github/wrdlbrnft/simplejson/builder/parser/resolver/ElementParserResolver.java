@@ -54,6 +54,7 @@ public class ElementParserResolver {
                 new CalendarParserEntry(mProcessingEnvironment, mBuildCache),
                 new DateParserEntry(mProcessingEnvironment, mBuildCache),
                 new DoubleParserEntry(mProcessingEnvironment, mBuildCache),
+                new CustomParserEntry(mProcessingEnvironment, mBuildCache),
                 new EnumParserEntry(mProcessingEnvironment, mBuildCache),
                 new FloatParserEntry(mProcessingEnvironment, mBuildCache),
                 new IntegerParserEntry(mProcessingEnvironment, mBuildCache),
