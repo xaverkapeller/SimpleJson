@@ -85,6 +85,7 @@ public class ElementParserResolver {
                     mFields.add(field);
                     return field;
                 })
+                .map(CodeElement.class::cast)
                 .orElseGet(() -> {
                     mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to find a parser for " + type, mappedValue.getMethodPairInfo().getGetter());
                     return Values.ofNull();
