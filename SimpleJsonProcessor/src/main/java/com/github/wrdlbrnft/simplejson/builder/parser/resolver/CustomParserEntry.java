@@ -43,6 +43,7 @@ class CustomParserEntry extends BaseParserEntry {
     protected Field createField(MappedValue value, TypeMirror type) {
         final MethodPairInfo methodPairInfo = value.getMethodPairInfo();
         final AnnotationValue parserClassValue = methodPairInfo.findAnnotationValue(SimpleJsonAnnotations.FIELD_NAME, "parserClass");
+        final TypeMirror parserTypeMirror = (TypeMirror) parserClassValue.getValue();
         return createElementParserField(
                 Types.generic(SimpleJsonTypes.ELEMENT_PARSER, Types.of(type)),
                 Types.of(parserTypeMirror)
