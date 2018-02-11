@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface JsonEntity {
     String factoryName() default "";
+    boolean strict() default false;
 }

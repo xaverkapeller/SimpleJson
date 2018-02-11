@@ -15,8 +15,8 @@ The next generation JSON Parser for Android!
 Just add is these two dependencies to your build.gradle file:
 
 ```groovy
-implementation 'com.github.wrdlbrnft:simple-json:0.3.0.35'
-annotationProcessor 'com.github.wrdlbrnft:simple-json-processor:0.3.0.35'
+implementation 'com.github.wrdlbrnft:simple-json:0.3.0.53'
+annotationProcessor 'com.github.wrdlbrnft:simple-json-processor:0.3.0.53'
 ```
 
 ## Basic Usage

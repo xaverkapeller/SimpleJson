@@ -9,9 +9,9 @@ import com.github.wrdlbrnft.codebuilder.implementations.Implementation;
 import com.github.wrdlbrnft.codebuilder.types.Types;
 import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.codebuilder.variables.Variable;
+import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationResult;
+import com.github.wrdlbrnft.simplejson.builder.implementation.MappedValue;
 import com.github.wrdlbrnft.simplejson.builder.implementation.MethodPairInfo;
-import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
 import com.github.wrdlbrnft.simplejson.utils.TypeStub;
 
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ public class BuilderBuilder {
                     .setModifiers(EnumSet.of(Modifier.PRIVATE))
                     .build();
 
-            parameters.add(handleOptionalParameter(mappedValue, field));
+            parameters.add(handleOptionalParameter(result.getImplementationInfo(), mappedValue, field));
 
             builder.addField(field);
             builder.addMethod(new Method.Builder()

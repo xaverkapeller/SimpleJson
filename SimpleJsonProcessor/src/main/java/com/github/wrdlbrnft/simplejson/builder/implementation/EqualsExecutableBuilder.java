@@ -17,7 +17,6 @@ import com.github.wrdlbrnft.codebuilder.util.Utils;
 import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.codebuilder.variables.Variable;
 import com.github.wrdlbrnft.codebuilder.variables.Variables;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
 import java.util.ArrayList;
 import java.util.List;

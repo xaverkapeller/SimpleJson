@@ -1,4 +1,4 @@
-package com.github.wrdlbrnft.simplejson.models;
+package com.github.wrdlbrnft.simplejson.builder.implementation;
 
 import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.simplejson.builder.implementation.MethodPairInfo;

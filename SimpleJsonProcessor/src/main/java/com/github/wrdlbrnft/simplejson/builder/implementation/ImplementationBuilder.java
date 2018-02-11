@@ -15,14 +15,13 @@ import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.codebuilder.variables.Variable;
 import com.github.wrdlbrnft.codebuilder.variables.Variables;
 import com.github.wrdlbrnft.simplejson.SimpleJsonAnnotations;
-import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
@@ -91,7 +90,10 @@ public class ImplementationBuilder {
         final Implementation implementation = mBuilder.build();
         lazyImplType.setType(implementation);
 
-        return new ImplementationResult(implementation, model, mappedValues);
+        final AnnotationValue annotationValue = Utils.getAnnotationValue(model, SimpleJsonAnnotations.JSON_ENTITY, "strict");
+        final boolean strictMode = annotationValue != null && (boolean) annotationValue.getValue();
+        final ImplementationInfo implementationInfo = new ImplementationInfo(strictMode);
+        return new ImplementationResult(implementation, model, mappedValues, implementationInfo);
     }
 
     private MappedValue createMappedValueWrapper(TypeElement parent, MethodPairInfo info) {

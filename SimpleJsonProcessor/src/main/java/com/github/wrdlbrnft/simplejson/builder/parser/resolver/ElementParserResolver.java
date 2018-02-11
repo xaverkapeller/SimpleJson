@@ -9,7 +9,7 @@ import com.github.wrdlbrnft.simplejson.SimpleJsonAnnotations;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
 import com.github.wrdlbrnft.simplejson.builder.implementation.MethodPairInfo;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
+import com.github.wrdlbrnft.simplejson.builder.implementation.MappedValue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
