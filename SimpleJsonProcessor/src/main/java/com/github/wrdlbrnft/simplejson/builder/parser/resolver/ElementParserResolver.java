@@ -54,6 +54,7 @@ public class ElementParserResolver {
                 new CalendarParserEntry(mProcessingEnvironment, mBuildCache),
                 new DateParserEntry(mProcessingEnvironment, mBuildCache),
                 new DoubleParserEntry(mProcessingEnvironment, mBuildCache),
+                new CustomParserEntry(mProcessingEnvironment, mBuildCache),
                 new EnumParserEntry(mProcessingEnvironment, mBuildCache),
                 new FloatParserEntry(mProcessingEnvironment, mBuildCache),
                 new IntegerParserEntry(mProcessingEnvironment, mBuildCache),
@@ -84,28 +85,10 @@ public class ElementParserResolver {
                     mFields.add(field);
                     return field;
                 })
+                .map(CodeElement.class::cast)
                 .orElseGet(() -> {
-                    final MethodPairInfo methodPairInfo = mappedValue.getMethodPairInfo();
-                    final AnnotationValue parserClassValue = methodPairInfo.findAnnotationValue(SimpleJsonAnnotations.FIELD_NAME, "parserClass");
-                    if (parserClassValue != null) {
-                        final TypeMirror parserTypeMirror = (TypeMirror) parserClassValue.getValue();
-                        return createElementParserField(
-                                Types.generic(SimpleJsonTypes.ELEMENT_PARSER, Types.of(type)),
-                                Types.of(parserTypeMirror)
-                        );
-                    } else {
-
-                        final Type parser = mBuildCache.getCustomParser(element);
-                        if (parser == null) {
-                            mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Could not find a parser for " + element.getSimpleName() + "!!1 Have you forgot to annotate it? If the class is a framework class then most likely it is not supported to be used in entities created with this library.", mInterfaceType);
-                            return null;
-                        }
-
-                        return createElementParserField(
-                                Types.generic(SimpleJsonTypes.ELEMENT_PARSER, Types.of(type)),
-                                parser
-                        );
-                    }
+                    mProcessingEnvironment.getMessager().printMessage(Diagnostic.Kind.ERROR, "Failed to find a parser for " + type, mappedValue.getMethodPairInfo().getGetter());
+                    return Values.ofNull();
                 });
     }
 
