@@ -6,7 +6,7 @@ import com.github.wrdlbrnft.codebuilder.types.Type;
 import com.github.wrdlbrnft.codebuilder.variables.Variable;
 import com.github.wrdlbrnft.codebuilder.variables.Variables;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
+import com.github.wrdlbrnft.simplejson.builder.implementation.MappedValue;
 
 import java.util.ArrayList;
 import java.util.List;

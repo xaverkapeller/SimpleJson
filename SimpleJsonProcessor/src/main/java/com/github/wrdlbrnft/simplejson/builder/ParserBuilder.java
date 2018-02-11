@@ -9,7 +9,7 @@ import com.github.wrdlbrnft.simplejson.builder.factories.entity.JsonEntityFactor
 import com.github.wrdlbrnft.simplejson.builder.factories.enums.EnumFactoryBuilder;
 import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationBuilder;
 import com.github.wrdlbrnft.simplejson.builder.parser.InternalParserBuilder;
-import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
+import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationResult;
 import com.github.wrdlbrnft.simplejson.utils.ImplementationStub;
 
 import java.io.IOException;

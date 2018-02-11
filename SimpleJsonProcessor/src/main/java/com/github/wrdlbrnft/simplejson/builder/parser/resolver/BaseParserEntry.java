@@ -4,13 +4,12 @@ import com.github.wrdlbrnft.codebuilder.code.CodeElement;
 import com.github.wrdlbrnft.codebuilder.types.Type;
 import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
+import com.github.wrdlbrnft.simplejson.builder.implementation.MappedValue;
 
 import java.util.EnumSet;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 
 /**

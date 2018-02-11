@@ -8,12 +8,11 @@ import com.github.wrdlbrnft.codebuilder.elements.ifs.If;
 import com.github.wrdlbrnft.codebuilder.elements.values.Values;
 import com.github.wrdlbrnft.codebuilder.types.Types;
 import com.github.wrdlbrnft.codebuilder.util.Operators;
-import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.codebuilder.variables.Variable;
 import com.github.wrdlbrnft.codebuilder.variables.Variables;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejson.builder.parser.resolver.ElementParserResolver;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
+import com.github.wrdlbrnft.simplejson.builder.implementation.MappedValue;
 
 import javax.lang.model.element.Modifier;
 import javax.lang.model.type.TypeMirror;

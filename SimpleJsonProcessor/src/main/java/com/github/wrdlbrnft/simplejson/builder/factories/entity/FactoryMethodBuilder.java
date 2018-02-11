@@ -3,13 +3,12 @@ package com.github.wrdlbrnft.simplejson.builder.factories.entity;
 import com.github.wrdlbrnft.codebuilder.code.Block;
 import com.github.wrdlbrnft.codebuilder.code.CodeElement;
 import com.github.wrdlbrnft.codebuilder.executables.ExecutableBuilder;
-import com.github.wrdlbrnft.codebuilder.executables.Method;
-import com.github.wrdlbrnft.codebuilder.executables.Methods;
 import com.github.wrdlbrnft.codebuilder.types.Type;
 import com.github.wrdlbrnft.codebuilder.types.Types;
 import com.github.wrdlbrnft.codebuilder.variables.Variable;
+import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationResult;
+import com.github.wrdlbrnft.simplejson.builder.implementation.MappedValue;
 import com.github.wrdlbrnft.simplejson.builder.implementation.MethodPairInfo;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,26 +23,20 @@ import static com.github.wrdlbrnft.simplejson.utils.ParameterUtils.handleOptiona
  */
 class FactoryMethodBuilder extends ExecutableBuilder {
 
-    private static final Type TYPE_OBJECTS = Types.of("java.util", "Objects");
-    private static final Method METHOD_REQUIRE_NON_NULL = Methods.stub("requireNonNull");
+    private final List<CodeElement> mParameters = new ArrayList<>();
+    private final ImplementationResult mResult;
 
-    private final List<MappedValue> mMappedValues;
-    private final Type mImplementationType;
-
-    private final CodeElement[] mParameters;
-
-    FactoryMethodBuilder(Type implementationType, List<MappedValue> mappedValues) {
-        mMappedValues = mappedValues;
-        mImplementationType = implementationType;
-        mParameters = new CodeElement[mappedValues.size()];
+    FactoryMethodBuilder(ImplementationResult result) {
+        mResult = result;
     }
 
     @Override
     protected List<Variable> createParameters() {
         final List<Variable> parameters = new ArrayList<>();
 
-        for (int i = 0, count = mMappedValues.size(); i < count; i++) {
-            final MappedValue mappedValue = mMappedValues.get(i);
+        final List<MappedValue> mappedValues = mResult.getMappedValues();
+        for (int i = 0, count = mappedValues.size(); i < count; i++) {
+            final MappedValue mappedValue = mappedValues.get(i);
             final MethodPairInfo info = mappedValue.getMethodPairInfo();
             final TypeMirror typeMirror = info.getGetter().getReturnType();
 
@@ -52,7 +45,7 @@ class FactoryMethodBuilder extends ExecutableBuilder {
                     .setType(Types.of(typeMirror))
                     .build();
             parameters.add(parameter);
-            mParameters[i] = handleOptionalParameter(mappedValue, parameter);
+            mParameters.add(handleOptionalParameter(mResult.getImplementationInfo(), mappedValue, parameter));
         }
 
         return parameters;
@@ -60,6 +53,8 @@ class FactoryMethodBuilder extends ExecutableBuilder {
 
     @Override
     protected void write(Block block) {
-        block.append("return ").append(mImplementationType.newInstance(mParameters)).append(";");
+        final CodeElement[] parameters = mParameters.toArray(new CodeElement[0]);
+        final Type implementationType = mResult.getImplType();
+        block.append("return ").append(implementationType.newInstance(parameters)).append(";");
     }
 }

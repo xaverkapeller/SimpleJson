@@ -16,8 +16,8 @@ import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
 import com.github.wrdlbrnft.simplejson.builder.builder.BuilderBuilder;
 import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationBuilder;
 import com.github.wrdlbrnft.simplejson.builder.parser.InternalParserBuilder;
-import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
+import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationResult;
+import com.github.wrdlbrnft.simplejson.builder.implementation.MappedValue;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -67,8 +67,6 @@ public class JsonEntityFactoryBuilder {
         builder.setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.FINAL));
 
         final TypeElement interfaceType = result.getInterfaceType();
-        final Type implType = result.getImplType();
-        final List<MappedValue> mappedValues = result.getMappedValues();
 
         final Field parserField = new Field.Builder()
                 .setType(Types.generic(SimpleJsonTypes.PARSER, entityType))
@@ -81,7 +79,7 @@ public class JsonEntityFactoryBuilder {
                 .setReturnType(Types.of(interfaceType))
                 .setName("create")
                 .setModifiers(EnumSet.of(Modifier.PUBLIC, Modifier.STATIC))
-                .setCode(new FactoryMethodBuilder(implType, mappedValues))
+                .setCode(new FactoryMethodBuilder(result))
                 .build());
 
         builder.addMethod(new Method.Builder()

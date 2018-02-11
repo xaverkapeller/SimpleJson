@@ -10,8 +10,8 @@ import com.github.wrdlbrnft.codebuilder.variables.Field;
 import com.github.wrdlbrnft.simplejson.SimpleJsonTypes;
 import com.github.wrdlbrnft.simplejson.builder.ParserBuilder;
 import com.github.wrdlbrnft.simplejson.builder.parser.resolver.ElementParserResolver;
-import com.github.wrdlbrnft.simplejson.models.ImplementationResult;
-import com.github.wrdlbrnft.simplejson.models.MappedValue;
+import com.github.wrdlbrnft.simplejson.builder.implementation.ImplementationResult;
+import com.github.wrdlbrnft.simplejson.builder.implementation.MappedValue;
 
 import java.util.EnumSet;
 import java.util.List;
